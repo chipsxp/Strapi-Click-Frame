@@ -1,7 +1,4 @@
-############################
-# OS X
-############################
-
+# OS-specific files
 .DS_Store
 .AppleDouble
 .LSOverride
@@ -9,19 +6,6 @@ Icon
 .Spotlight-V100
 .Trashes
 ._*
-
-
-############################
-# Linux
-############################
-
-*~
-
-
-############################
-# Windows
-############################
-
 Thumbs.db
 ehthumbs.db
 Desktop.ini
@@ -31,134 +15,58 @@ $RECYCLE.BIN/
 *.msm
 *.msp
 
-
-############################
-# Packages
-############################
-
-*.7z
-*.csv
-*.dat
-*.dmg
-*.gz
-*.iso
-*.jar
-*.rar
-*.tar
-*.zip
-*.com
-*.class
-*.dll
-*.exe
-*.o
-*.seed
-*.so
-*.swo
-*.swp
-*.swn
-*.swm
-*.out
-*.pid
-
-
-############################
-# Logs and databases
-############################
-
-.tmp
+# Node / Packages
+node_modules/
+dist/
+build/
+.cache/
+.tmp/
 *.log
-*.sql
-*.sqlite
-*.sqlite3
-
-
-############################
-# Misc.
-############################
-
-*#
-ssl
-.idea
-nbproject
-public/uploads/*
-!public/uploads/.gitkeep
+*.seed
+*.pid
 .tsbuildinfo
 .eslintcache
 
-############################
-# Node.js
-############################
+# Databases
+*.sql
+*.sqlite
+*.sqlite3
+photorium/data/
 
-lib-cov
-lcov.info
-pids
-logs
-results
-node_modules
-.node_history
-
-############################
-# Package managers
-############################
-
-.yarn/*
-!.yarn/cache
-!.yarn/unplugged
-!.yarn/patches
-!.yarn/releases
-!.yarn/sdks
-!.yarn/versions
-.pnp.*
-yarn-error.log
-
-############################
-# Tests
-############################
-
-coverage
-
-############################
-# Strapi
-############################
-
+# Environment and Secrets (CRITICAL)
 .env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+photorium/.env
+react/.env
 license.txt
-exports
-.strapi
-dist
-build
+exports/
+.strapi/
 .strapi-updater.json
 .strapi-cloud.json
+gha-creds-*.json
 
-############################
-# AI Assistants & Local Config
-############################
-
+# AI Assistants & Local Tools (EXCLUDE FROM REPO)
 .claude/
 .cline/
 .gemini/
 .vscode/
 graphify-out/
 .graphify_python
+.github/copilot-instructions.md
 
-############################
-# Project Specific
-############################
-
-photorium/.env
-photorium/.tmp/
-photorium/dist/
-photorium/node_modules/
-photorium/data/
-react/.env
+# Astro specific
+.astro/
 react/.astro/
-react/dist/
-react/node_modules/
 
-############################
-# Local Data Dumps
-############################
-
+# Local Data Dumps / Debugging
 photos_debug.json
 photos_dump.json
 photos_full.json
+
+# Strapi Uploads (keep gitkeep but ignore contents)
+photorium/public/uploads/*
+!photorium/public/uploads/.gitkeep
