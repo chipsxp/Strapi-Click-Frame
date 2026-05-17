@@ -1,0 +1,136 @@
+// Strict TypeScript types for Strapi content types
+
+export interface StrapiPhoto {
+  id: number;
+  documentId: string;
+  title: string;
+  description: string;
+  image: StrapiMedia;
+  author: StrapiUser;
+  favorites: StrapiUser[];
+  og_title?: string;
+  og_description?: string;
+  ik_file_id?: string;
+  ik_url?: string;
+  ik_thumbnail_url?: string;
+  tags?: StrapiTag[];
+  views: number;
+  classic_munch_count: number;
+  cheddar_munch_count: number;
+  categories?: StrapiCategory[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StrapiUser {
+  id: number;
+  documentId: string;
+  username: string;
+  email: string;
+  nickname?: string;
+  photos?: StrapiPhoto[];
+  favorite_photos?: StrapiPhoto[];
+  bio?: string;
+  avatar?: StrapiMedia;
+  cheddar_munch_balance?: number;
+  classic_munch_given_total?: number;
+  following?: StrapiUser[];
+  followers?: StrapiUser[];
+  role?: {
+    id: number;
+    name: string;
+    type: string;
+  };
+}
+
+export interface StrapiCategory {
+  id: number;
+  documentId: string;
+  name: string;
+  slug: string;
+  user?: StrapiUser;
+  photos?: StrapiPhoto[];
+}
+
+export interface StrapiTag {
+  id: number;
+  documentId: string;
+  name: string;
+  slug: string;
+  photos?: StrapiPhoto[];
+}
+
+export interface StrapiMedia {
+  id: number;
+  documentId: string;
+  name: string;
+  alternativeText?: string;
+  caption?: string;
+  width?: number;
+  height?: number;
+  formats?: {
+    thumbnail?: StrapiMediaFormat;
+    small?: StrapiMediaFormat;
+    medium?: StrapiMediaFormat;
+    large?: StrapiMediaFormat;
+  };
+  hash: string;
+  ext: string;
+  mime: string;
+  size: number;
+  url: string;
+  previewUrl?: string;
+  provider: string;
+  createdAt: string;
+  updatedAt: string;
+  data?: {
+    id: number;
+    attributes: {
+      url: string;
+      alternativeText?: string;
+      caption?: string;
+      width?: number;
+      height?: number;
+    };
+  };
+}
+
+export interface StrapiProfileConfig {
+  id: number;
+  documentId: string;
+  cover_images?: StrapiMedia[];
+  total_users_display?: number;
+  total_munching_display?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StrapiMediaFormat {
+  name: string;
+  hash: string;
+  ext: string;
+  mime: string;
+  width: number;
+  height: number;
+  size: number;
+  url: string;
+}
+
+export interface StrapiSeo {
+  metaTitle: string;
+  metaDescription: string;
+  shareImage?: StrapiMedia;
+  metaViewport?: string;
+  canonicalURL?: string;
+}
+
+export interface StrapiGlobal {
+  id: number;
+  documentId: string;
+  siteName: string;
+  siteDescription: string;
+  favicon?: StrapiMedia;
+  defaultSeo: StrapiSeo;
+  createdAt: string;
+  updatedAt: string;
+}

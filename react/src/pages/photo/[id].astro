@@ -1,0 +1,245 @@
+---
+import ClientLayout from '../../layouts/ClientLayout.astro';
+import SocialShare from '../../components/SocialShare.astro';
+import type { StrapiPhoto } from '../../types/strapi';
+
+const { id } = Astro.params;
+
+const strapiUrl = import.meta.env.STRAPI_URL || 'http://localhost:1337';
+const response = await fetch(`${strapiUrl}/api/photos/${id}?populate=*`);
+
+if (!response.ok) {
+  return Astro.redirect('/404');
+}
+
+const json = await response.json();
+const photo: StrapiPhoto = json.data;
+
+if (!photo) {
+  return Astro.redirect('/404');
+}
+
+const getImageUrl = (photo: StrapiPhoto) => {
+  if (photo.ik_url) return photo.ik_url;
+  
+  // Defensive check for Strapi 5 media response
+  const imgData = photo.image as any;
+  if (imgData) {
+    const url = imgData.url || imgData.data?.attributes?.url;
+    if (url) {
+      return url.startsWith('http') ? url : `http://localhost:1337${url}`;
+    }
+  }
+  return '/favicon.png';
+};
+
+const imageUrl = getImageUrl(photo);
+const currentUrl = Astro.url.href;
+
+const formattedDate = new Date(photo.createdAt || Date.now()).toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric'
+});
+---
+
+<ClientLayout 
+  title={`${photo.title} | Photorium`} 
+  description={photo.description || `Check out this amazing art titled "${photo.title}" by ${photo.author?.username || 'an artist'} on Photorium.`}
+  image={imageUrl}
+>
+  <div class="photo-detail-container">
+    <div class="photo-hero">
+      <img src={imageUrl} alt={photo.title} class="main-image" />
+    </div>
+    
+    <div class="photo-metadata">
+      <div class="metadata-header">
+        <div class="title-section">
+          <h1>{photo.title}</h1>
+          <p class="author">By <a href={`/artist/${photo.author?.username}`} class="author-link"><strong>{photo.author?.username || 'Anonymous'}</strong></a></p>
+        </div>
+        <div class="munch-stats">
+          <div class="munch-badge classic" title="Classic Munches">
+            🍟 <span>{photo.classic_munch_count || 0}</span>
+          </div>
+          <div class="munch-badge cheddar" title="Cheddar Munches">
+            🧀 <span>{photo.cheddar_munch_count || 0}</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="description-section">
+        <h3>The Story</h3>
+        <p>{photo.description || 'No description provided.'}</p>
+        
+        <SocialShare 
+          url={currentUrl} 
+          title={photo.title} 
+          description={photo.description} 
+          image={imageUrl} 
+        />
+      </div>
+      
+      <div class="details-section">
+        <div class="detail-item">
+          <span class="label">Fried on</span>
+          <span class="value">{formattedDate}</span>
+        </div>
+        {photo.categories && photo.categories.length > 0 && (
+          <div class="detail-item">
+            <span class="label">Flavors</span>
+            <div class="flavor-tags-list">
+              {photo.categories.map(cat => (
+                <span class="value flavor-tag">{cat.name || cat.slug || 'Unknown'}</span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+</ClientLayout>
+
+<style>
+  .photo-detail-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .photo-hero {
+    width: 100%;
+    max-height: 80vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #e8ecef;
+    border-radius: 1.5rem;
+    overflow: hidden;
+    margin-bottom: 3rem;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  }
+
+  .main-image {
+    max-width: 100%;
+    max-height: 80vh;
+    object-fit: contain;
+  }
+
+  .photo-metadata {
+    max-width: 800px;
+    margin: 0 auto;
+    background: #fff;
+    padding: 3rem;
+    border-radius: 1.5rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  }
+
+  .metadata-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 2rem;
+  }
+
+  .title-section h1 {
+    font-size: 2.5rem;
+    color: #3d2b1f;
+    margin: 0 0 0.5rem 0;
+    font-weight: 800;
+  }
+
+  .title-section .author {
+    font-size: 1.1rem;
+    color: #8b7355;
+    margin: 0;
+  }
+
+  .author-link {
+    color: #ff9800;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .author-link:hover {
+    color: #3d2b1f;
+    text-decoration: underline;
+  }
+
+  .munch-stats {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .munch-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    font-weight: 700;
+    font-size: 1.2rem;
+  }
+
+  .munch-badge.classic {
+    background: #fff8e1;
+    color: #ffb300;
+  }
+
+  .munch-badge.cheddar {
+    background: #fff3e0;
+    color: #f57c00;
+  }
+
+  .description-section {
+    margin-bottom: 2.5rem;
+  }
+
+  .description-section h3 {
+    font-size: 1.2rem;
+    color: #3d2b1f;
+    margin: 0 0 1rem 0;
+    font-weight: 700;
+  }
+
+  .description-section p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #555;
+    margin: 0;
+  }
+
+  .details-section {
+    display: flex;
+    gap: 3rem;
+  }
+
+  .detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .detail-item .label {
+    font-size: 0.9rem;
+    color: #8b7355;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+  }
+
+  .detail-item .value {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #3d2b1f;
+  }
+
+  .flavor-tag {
+    background: #f0f0f0;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+  }
+</style>

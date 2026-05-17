@@ -1,0 +1,181 @@
+---
+import { Toaster } from "react-hot-toast";
+import Navbar from "../components/Navbar";
+import type { StrapiGlobal } from "../types/strapi";
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  canonicalURL?: string;
+}
+
+const strapiUrl = import.meta.env.STRAPI_URL || "http://127.0.0.1:1337";
+
+// Fetch Global SEO settings
+let globalData: StrapiGlobal | null = null;
+try {
+  // Strapi 5.4 robust population
+  const fetchUrl = `${strapiUrl}/api/global?populate[defaultSeo][populate]=*&populate[favicon]=*`;
+  const globalRes = await fetch(fetchUrl);
+
+  if (globalRes.ok) {
+    const json = await globalRes.json();
+    globalData = json.data?.attributes || json.data;
+  } else {
+    // Ultimate fallback
+    const fallbackRes = await fetch(`${strapiUrl}/api/global?populate=*`);
+    if (fallbackRes.ok) {
+      const json = await fallbackRes.json();
+      globalData = json.data?.attributes || json.data;
+    }
+  }
+} catch (error) {
+  console.error("[SEO] Error fetching global SEO data:", error);
+}
+
+const {
+  title,
+  description = globalData?.defaultSeo?.metaDescription ||
+    globalData?.siteDescription ||
+    "Photorium - The dynamic community for digital artists.",
+  image = globalData?.defaultSeo?.shareImage?.url || "/favicon.svg",
+  canonicalURL = Astro.url.href,
+} = Astro.props;
+
+const siteName = globalData?.siteName || "Photorium";
+const finalTitle = title ? `${title} | ${siteName}` : siteName;
+
+// Resilient Favicon Path for Strapi 5.4
+const faviconPath = globalData?.favicon?.url;
+const faviconUrl = faviconPath
+  ? faviconPath.startsWith("http")
+    ? faviconPath
+    : `${strapiUrl}${faviconPath}`
+  : "/favicon.svg";
+
+// Better Mime Type detection
+let faviconType = globalData?.favicon?.mime;
+if (!faviconType) {
+  if (faviconUrl.endsWith(".png")) faviconType = "image/png";
+  else if (faviconUrl.endsWith(".ico")) faviconType = "image/x-icon";
+  else faviconType = "image/svg+xml";
+}
+
+const shareImageUrl = image.startsWith("http") ? image : `${strapiUrl}${image}`;
+
+const user = Astro.locals.user;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+
+    <!-- Primary Meta Tags -->
+    <title>{finalTitle}</title>
+    <meta name="title" content={finalTitle} />
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalURL} />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:title" content={finalTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={shareImageUrl} />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content={canonicalURL} />
+    <meta property="twitter:title" content={finalTitle} />
+    <meta property="twitter:description" content={description} />
+    <meta property="twitter:image" content={shareImageUrl} />
+
+    <link rel="icon" type={faviconType} href={faviconUrl} />
+    <link rel="icon" href={faviconUrl} />
+    <meta name="generator" content={Astro.generator} />
+
+    <script is:inline>
+      // Initialize theme as early as possible to avoid flash of light mode
+      const theme =
+        localStorage.getItem("theme") ||
+        (window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light");
+      document.documentElement.setAttribute("data-theme", theme);
+    </script>
+  </head>
+  <body>
+    <Navbar client:load user={user} />
+    <Toaster client:load />
+    <main>
+      <slot />
+    </main>
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    --bg-color: #f3f5f6;
+    --card-bg: #ffffff;
+    --text-primary: #3d2b1f;
+    --text-secondary: #8b7355;
+    --border-color: #eeeeee;
+    --btn-primary-bg: #3d2b1f;
+    --btn-primary-text: #ffffff;
+    --accent-color: #ffc107;
+    --modal-overlay: rgba(61, 43, 31, 0.8);
+    --input-bg: #ffffff;
+    --input-border: #eeeeee;
+    --nav-bg: #212124;
+    --nav-text: #ffffff;
+    --header-name-color: #e0b85c; /* Golden/Darker Potato */
+  }
+
+  [data-theme="dark"] {
+    --bg-color: #121212;
+    --card-bg: #1e1e1e;
+    --text-primary: #f5f5f5;
+    --text-secondary: #b3a18b;
+    --border-color: #333333;
+    --btn-primary-bg: #ffc107;
+    --btn-primary-text: #1a1a1a;
+    --accent-color: #ff9800;
+    --modal-overlay: rgba(0, 0, 0, 0.85);
+    --input-bg: #2a2a2a;
+    --input-border: #444444;
+    --nav-bg: #000000;
+    --nav-text: #f5f5f5;
+    --header-name-color: #fef4c0; /* Creamy Potato Flesh */
+  }
+
+  html,
+  body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    font-family:
+      -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+      sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease;
+  }
+
+  /* Global overrides to respect theme variables */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--text-primary);
+  }
+  a {
+    color: inherit;
+  }
+</style>

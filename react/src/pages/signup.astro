@@ -1,0 +1,398 @@
+---
+import ClientLayout from '../layouts/ClientLayout.astro';
+
+// Redirect if already logged in
+if (Astro.locals.user) {
+  return Astro.redirect('/dashboard');
+}
+---
+
+<ClientLayout title="Join Photorium | Signup">
+  <div class="login-container">
+    <div class="login-card">
+      <div class="brand">
+        <h1>Photorium</h1>
+        <p>Start your artistic journey today.</p>
+      </div>
+
+      <form id="signup-form">
+        <div class="field">
+          <label for="username">Artist Name (Username)</label>
+          <input type="text" id="username" name="username" required placeholder="e.g. potato_king" autocomplete="username" />
+        </div>
+
+        <div class="field">
+          <label for="email">Registrar Email</label>
+          <input type="email" id="email" name="email" required placeholder="artist@example.com" autocomplete="email" />
+        </div>
+
+        <div class="field">
+          <label for="password">Secret Recipe (Password)</label>
+          <input type="password" id="password" name="password" required placeholder="••••••••" minlength="8" autocomplete="new-password" />
+          <div id="password-feedback" class="feedback"></div>
+        </div>
+
+        <div id="error-msg" class="error" style="display: none;"></div>
+
+        <p class="signup-note">
+          <strong>Note:</strong> We'll send a confirmation link to your email. 
+          You must click it to activate your account.
+        </p>
+
+        <button type="submit" id="submit-btn">
+          <span class="btn-text">Join the Stash</span>
+          <div class="btn-bg"></div>
+        </button>
+      </form>
+
+      <div class="footer">
+        <p>Already got a spot? <a href="/login">Fire up the stove</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Modal -->
+  <div id="success-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span class="modal-icon">✉️</span>
+        <h2>Confirm your stash!</h2>
+      </div>
+      <div class="modal-body">
+        <p>Awesome! Your artist account is almost ready.</p>
+        <p>We've sent a <strong>confirmation link</strong> to your email. Please check your inbox (and spam folder) and click the link to activate your spot.</p>
+      </div>
+      <div class="modal-footer">
+        <button id="close-modal" class="modal-confirm-btn">Got it, checking now!</button>
+      </div>
+    </div>
+  </div>
+</ClientLayout>
+
+<script>
+  import toast from 'react-hot-toast';
+
+  const form = document.getElementById('signup-form') as HTMLFormElement;
+  const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+  const passwordInput = document.getElementById('password') as HTMLInputElement;
+  const feedback = document.getElementById('password-feedback');
+
+  const validatePassword = (pass: string) => {
+    const requirements = [
+      { regex: /.{8,}/, text: "At least 8 characters" },
+      { regex: /[A-Z]/, text: "One uppercase letter" },
+      { regex: /[a-z]/, text: "One lowercase letter" },
+      { regex: /[0-9]/, text: "One number" },
+      { regex: /[^A-Za-z0-9]/, text: "One special character" },
+    ];
+
+    const failed = requirements.filter(req => !req.regex.test(pass));
+    return failed;
+  };
+
+  passwordInput?.addEventListener('input', () => {
+    const pass = passwordInput.value;
+    const failed = validatePassword(pass);
+    
+    if (pass === "") {
+        if (feedback) feedback.innerHTML = "";
+        return;
+    }
+
+    if (feedback) {
+      if (failed.length > 0) {
+        feedback.style.color = "#d32f2f";
+        feedback.innerHTML = "Need: " + failed.map(f => f.text).join(", ");
+      } else {
+        feedback.style.color = "#2e7d32";
+        feedback.innerHTML = "Recipe looks perfect! ✓";
+      }
+    }
+  });
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const pass = passwordInput.value;
+    const failed = validatePassword(pass);
+    if (failed.length > 0) {
+        toast.error("Password is too weak. Please fix the requirements.");
+        return;
+    }
+
+    if (submitBtn) submitBtn.disabled = true;
+    const toastId = toast.loading('Creating your stash...');
+    
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData);
+
+    try {
+      const response = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (response.ok) {
+        toast.success('Check your email!', { id: toastId });
+        form.reset();
+        if (feedback) feedback.innerHTML = "";
+        
+        // Show the success modal
+        const modal = document.getElementById('success-modal');
+        if (modal) {
+          modal.style.display = 'flex';
+        }
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || 'Signup failed', { id: toastId });
+      }
+    } catch (err: unknown) {
+      console.error(err);
+      const message = err instanceof Error ? err.message : 'Something went wrong';
+      toast.error(message, { id: toastId });
+    } finally {
+        if (submitBtn) submitBtn.disabled = false;
+    }
+  });
+
+  // Handle modal close
+  document.getElementById('close-modal')?.addEventListener('click', () => {
+    const modal = document.getElementById('success-modal');
+    if (modal) {
+      modal.style.display = 'none';
+      // Optionally redirect to login
+      window.location.href = '/login';
+    }
+  });
+</script>
+
+<style>
+  .login-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 80vh;
+    padding: 2rem;
+  }
+
+  .login-card {
+    background: var(--card-bg, #ffffff);
+    padding: 3rem;
+    border-radius: 2rem;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 450px;
+    border: 2px solid #f0f0f0;
+    transition: transform 0.3s ease;
+  }
+
+  .brand {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  .brand h1 {
+    font-size: 2.5rem;
+    color: #3d2b1f;
+    margin-bottom: 0.5rem;
+    font-weight: 800;
+  }
+
+  .brand p {
+    color: #8b7355;
+    font-size: 1rem;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #5d4037;
+    margin-left: 0.5rem;
+  }
+
+  input {
+    padding: 1rem 1.25rem;
+    border-radius: 1rem;
+    border: 2px solid #e0e0e0;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    background: #fafafa;
+  }
+
+  input:focus {
+    outline: none;
+    border-color: #ffc107;
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.1);
+  }
+
+  .feedback {
+    font-size: 0.75rem;
+    margin-left: 0.5rem;
+    min-height: 1rem;
+  }
+
+  button {
+    position: relative;
+    padding: 1.25rem;
+    border: none;
+    background: none;
+    cursor: pointer;
+    overflow: hidden;
+    border-radius: 1rem;
+    margin-top: 1rem;
+  }
+
+  .btn-text {
+    position: relative;
+    z-index: 1;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+
+  .btn-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #3d2b1f;
+    transition: transform 0.3s ease;
+  }
+
+  button:hover .btn-bg {
+    background: #ffc107;
+  }
+
+  button:hover .btn-text {
+    color: #3d2b1f;
+  }
+
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .footer {
+    margin-top: 2rem;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #8b7355;
+  }
+
+  .footer a {
+    color: #ffc107;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .footer a:hover {
+    text-decoration: underline;
+  }
+
+  .error {
+    color: #d32f2f;
+    font-size: 0.85rem;
+    text-align: center;
+    margin: 0;
+  }
+
+  .signup-note {
+    font-size: 0.85rem;
+    color: #8b7355;
+    background: #fff8e1;
+    padding: 1rem;
+    border-radius: 1rem;
+    border: 1px solid #ffe082;
+    line-height: 1.4;
+    text-align: center;
+  }
+
+  /* Modal Styles */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    display: none; /* Controlled by JS */
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+  }
+
+  .modal-card {
+    background: #fff;
+    padding: 2.5rem;
+    border-radius: 2rem;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    text-align: center;
+    animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  @keyframes modalPop {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .modal-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .modal-icon {
+    font-size: 4rem;
+    display: block;
+    margin-bottom: 1rem;
+  }
+
+  .modal-header h2 {
+    color: #3d2b1f;
+    font-size: 1.75rem;
+    font-weight: 800;
+  }
+
+  .modal-body {
+    margin-bottom: 2rem;
+    color: #5d4037;
+    line-height: 1.6;
+    font-size: 1.1rem;
+  }
+
+  .modal-confirm-btn {
+    background: #3d2b1f;
+    color: #fff;
+    padding: 1rem 2rem;
+    border-radius: 1rem;
+    font-weight: 700;
+    font-size: 1.1rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+  }
+
+  .modal-confirm-btn:hover {
+    background: #ffc107;
+    color: #3d2b1f;
+    transform: translateY(-2px);
+  }
+</style>

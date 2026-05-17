@@ -1,0 +1,46 @@
+flowchart TD
+    subgraph Users ["👤 User Roles & Auth"]
+        AdminRole["🔑 Super Admin <br/>(Seeded/Global Control)"]
+        AuthorRole["✍️ Author Role <br/>(Personal Dashboard)"]
+        Login(["⚡ Login / Auth"])
+        Login -->|Is Admin| AdminRole
+        Login -->|Is Author| AuthorRole
+    end
+
+    subgraph Dashboard ["🏠 Stateful User Dashboard (Astro/Strapi)"]
+        AuthorRole --> Manage["Manage Media & Metadata"]
+        Manage --> Upload["📥 Upload via ImageKit Plugin"]
+        Manage --> MetaInput["📝 Open Graph Metadata"]
+    end
+
+    subgraph MediaService ["☁️ External Media Storage"]
+        Upload --> IKPlugin["🔌 Strapi ImageKit Plugin"]
+        IKPlugin --> IKService["🖼️ ImageKit Account Storage"]
+        IKService -->|Return Optimized URLs| IKPlugin
+        IKPlugin -->|"Update Media Record w/ IK Properties"| DB
+    end
+
+    subgraph Backend ["⚙️ Backend & Data (Strapi 5)"]
+        DB[("🗄️ SQLite Database <br/>- Media Records w/ ImageKit Props")]
+        DB --> REST["/📦 REST API /api/"]
+    end
+
+    subgraph FrontendApp ["🚀 Astro 6 Content Delivery"]
+        REST --> Loader["📡 strapi-community-astro-loader"]
+        Loader --> Collections["📚 Astro Content Collections"]
+        Collections --> Vite["⚡ Vite / Build Tool"]
+        Vite --> PublicGrid["🎨 Responsive Public Grid"]
+    end
+
+    subgraph PublicUI ["🌐 Public Frontend (Flickr-style)"]
+        PublicGrid --> Intersections["🖼️ Grid Intersections <br/>- Photo, Title, Desc"]
+        Intersections --> OG["📱 Open Graph Sharing"]
+    end
+
+    classDef tech fill:#f9f,stroke:#333,stroke-width:2px,color:#000
+    classDef roles fill:#87CEEB,stroke:#333,stroke-width:2px,color:#000
+    classDef storage fill:#90EE90,stroke:#333,stroke-width:2px,color:#000
+
+    class AdminRole,AuthorRole roles
+    class IKService storage
+    class Loader,Collections,Vite tech

@@ -1,0 +1,221 @@
+---
+import ClientLayout from '../layouts/ClientLayout.astro';
+
+// Redirect if already logged in
+if (Astro.locals.user) {
+  return Astro.redirect('/dashboard');
+}
+
+
+---
+
+<ClientLayout title="Login | Photorium">
+  <div class="login-container">
+    <div class="login-card">
+      <div class="brand">
+        <h1>Photorium</h1>
+        <p>Grab your chips and start munching.</p>
+      </div>
+
+      <form id="login-form">
+        <div class="field">
+          <label for="identifier">Artist Name or Email</label>
+          <input type="text" id="identifier" name="identifier" required placeholder="e.g. potato_king" />
+        </div>
+
+        <div class="field">
+          <label for="password">Secret Recipe (Password)</label>
+          <input type="password" id="password" name="password" required placeholder="••••••••" />
+        </div>
+
+        <div id="error-msg" class="error" style="display: none;"></div>
+
+        <button type="submit" id="submit-btn">
+          <span class="btn-text">Enter the Fryer</span>
+          <div class="btn-bg"></div>
+        </button>
+      </form>
+
+      <div class="footer">
+        <p>Don't have a spot yet? <a href="/signup">Set up your stash</a></p>
+      </div>
+    </div>
+  </div>
+</ClientLayout>
+
+<script>
+  import toast from 'react-hot-toast';
+
+  const form = document.getElementById('login-form') as HTMLFormElement;
+  const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (submitBtn) submitBtn.disabled = true;
+    const toastId = toast.loading('Logging in...');
+    
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData);
+
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (response.ok) {
+        toast.success('Welcome back!', { id: toastId });
+        window.location.href = '/dashboard';
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || 'Login failed', { id: toastId });
+        if (submitBtn) submitBtn.disabled = false;
+      }
+    } catch (err: unknown) {
+      console.error(err);
+      const message = err instanceof Error ? err.message : 'Something went wrong';
+      toast.error(message, { id: toastId });
+      if (submitBtn) submitBtn.disabled = false;
+    }
+  });
+</script>
+
+<style>
+  .login-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 80vh;
+    padding: 2rem;
+  }
+
+  .login-card {
+    background: var(--card-bg, #ffffff);
+    padding: 3rem;
+    border-radius: 2rem;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 450px;
+    border: 2px solid #f0f0f0;
+    transition: transform 0.3s ease;
+  }
+
+  .brand {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  .brand h1 {
+    font-size: 2.5rem;
+    color: #3d2b1f;
+    margin-bottom: 0.5rem;
+    font-weight: 800;
+  }
+
+  .brand p {
+    color: #8b7355;
+    font-size: 1rem;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #5d4037;
+    margin-left: 0.5rem;
+  }
+
+  input {
+    padding: 1rem 1.25rem;
+    border-radius: 1rem;
+    border: 2px solid #e0e0e0;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    background: #fafafa;
+  }
+
+  input:focus {
+    outline: none;
+    border-color: #ffc107;
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.1);
+  }
+
+  button {
+    position: relative;
+    padding: 1.25rem;
+    border: none;
+    background: none;
+    cursor: pointer;
+    overflow: hidden;
+    border-radius: 1rem;
+    margin-top: 1rem;
+  }
+
+  .btn-text {
+    position: relative;
+    z-index: 1;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+
+  .btn-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #3d2b1f;
+    transition: transform 0.3s ease;
+  }
+
+  button:hover .btn-bg {
+    background: #ffc107;
+  }
+
+  button:hover .btn-text {
+    color: #3d2b1f;
+  }
+
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .footer {
+    margin-top: 2rem;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #8b7355;
+  }
+
+  .footer a {
+    color: #ffc107;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .footer a:hover {
+    text-decoration: underline;
+  }
+
+  .error {
+    color: #d32f2f;
+    font-size: 0.85rem;
+    text-align: center;
+    margin: 0;
+  }
+</style>

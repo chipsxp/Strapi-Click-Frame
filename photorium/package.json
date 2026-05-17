@@ -1,0 +1,47 @@
+{
+  "name": "photorium",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A Strapi application",
+  "scripts": {
+    "build": "strapi build",
+    "console": "strapi console",
+    "deploy": "strapi deploy",
+    "dev": "strapi develop",
+    "develop": "strapi develop",
+    "seed:example": "node ./scripts/seed.js",
+    "start": "strapi start",
+    "strapi": "strapi",
+    "upgrade": "npx @strapi/upgrade latest",
+    "upgrade:dry": "npx @strapi/upgrade latest --dry"
+  },
+  "dependencies": {
+    "@strapi/plugin-cloud": "5.46.0",
+    "@strapi/plugin-users-permissions": "5.46.0",
+    "@strapi/provider-email-nodemailer": "^5.46.0",
+    "@strapi/strapi": "5.46.0",
+    "better-sqlite3": "12.10.0",
+    "fs-extra": "^11.3.5",
+    "mime-types": "^3.0.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.30.3",
+    "strapi-plugin-imagekit": "^1.0.2",
+    "strapi-provider-upload-imagekit": "^5.11.11",
+    "styled-components": "^6.4.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^6"
+  },
+  "engines": {
+    "node": ">=20.0.0 <=24.x.x",
+    "npm": ">=6.0.0"
+  },
+  "strapi": {
+    "uuid": "6bf9e0f4-2634-4ba9-9d68-049ce6266dea",
+    "installId": "e6f90d1de29cc5907d14e85f5539aa1d6784492d459b42b417e065eeb5cfbf86"
+  }
+}

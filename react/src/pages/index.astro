@@ -1,0 +1,198 @@
+---
+import ClientLayout from '../layouts/ClientLayout.astro';
+import ProfileHeader from '../components/ProfileHeader';
+import PhotoGrid from '../components/PhotoGrid';
+import type { StrapiPhoto, StrapiUser, StrapiProfileConfig } from '../types/strapi';
+
+const { user: currentUser, token } = Astro.locals;
+
+// Get active filters from URL
+const categoryParam = Astro.url.searchParams.get('category');
+const feedParam = Astro.url.searchParams.get('feed') || 'discovery';
+
+// Fetch Photos dynamically from Strapi
+const strapiUrl = import.meta.env.STRAPI_URL || 'http://127.0.0.1:1337';
+const params = new URLSearchParams();
+params.append('populate', '*');
+params.append('sort', 'createdAt:desc');
+
+if (categoryParam) {
+  params.append('filters[categories][slug][$eq]', categoryParam);
+}
+
+// Apply Following Feed filter if active
+if (feedParam === 'following' && currentUser) {
+  const meRes = await fetch(`${strapiUrl}/api/users/me`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const meData: StrapiUser = await meRes.json();
+  const followingIds = meData.following?.map((u) => u.id) || [];
+  
+  if (followingIds.length > 0) {
+    followingIds.forEach((id: number, index: number) => {
+      params.append(`filters[author][id][$in][${index}]`, id.toString());
+    });
+  } else {
+    // If following nobody, filter by a non-existent ID to show nothing
+    params.append('filters[author][id][$eq]', '9999999');
+  }
+}
+
+const photosRes = await fetch(`${strapiUrl}/api/photos?${params.toString()}`);
+const photosJson = await photosRes.json();
+const photos: StrapiPhoto[] = photosJson.data || [];
+
+// Fetch Top 10 Recent Categories directly to ensure the bar is "spicy" even with few photos
+const categoriesRes = await fetch(`${strapiUrl}/api/categories?sort=createdAt:desc&pagination[pageSize]=10`);
+const categoriesJson = await categoriesRes.json();
+const topCategories: any[] = categoriesJson.data || [];
+
+// Fetch Profile Config for header visuals
+let profileConfig: StrapiProfileConfig | undefined;
+try {
+  const configRes = await fetch(`${strapiUrl}/api/profile-config?populate=cover_images`);
+  if (configRes.ok) {
+    const configJson = await configRes.json();
+    profileConfig = configJson.data;
+    console.log('[Header] Successfully fetched profile config');
+  } else {
+    console.warn(`[Header] Failed to fetch profile config: ${configRes.status}`);
+  }
+} catch (error) {
+  console.error('[Header] Error fetching profile config:', error);
+}
+
+// Fetch REAL counts for the community
+const usersRes = await fetch(`${strapiUrl}/api/users`, {
+  headers: token ? { Authorization: `Bearer ${token}` } : {}
+});
+const usersData: StrapiUser[] = await usersRes.json();
+const totalUsers = Array.isArray(usersData) ? usersData.length : 0;
+
+const reactionsRes = await fetch(`${strapiUrl}/api/reactions?pagination[pageSize]=1`);
+const reactionsJson = await reactionsRes.json();
+const totalMunching = reactionsJson.meta?.pagination?.total || 0;
+
+const coverImages = profileConfig?.cover_images?.map((img) => img.url) || [];
+---
+
+<ClientLayout title="Photorium Profile">
+	<ProfileHeader 
+		client:load 
+		photoCount={photos.length} 
+		userCount={totalUsers} 
+		munchingCount={totalMunching} 
+    coverImages={coverImages}
+	/>
+  
+  <div class="feed-tabs-wrapper">
+    <div class="feed-tabs">
+      <a href="/?feed=discovery" class={feedParam === 'discovery' ? "active" : ""}>Discovery</a>
+      {currentUser && (
+        <a href="/?feed=following" class={feedParam === 'following' ? "active" : ""}>Following</a>
+      )}
+    </div>
+  </div>
+
+  <div class="flavor-bar-wrapper">
+    <div class="flavor-bar">
+      <a href="/" class={!categoryParam ? "active" : ""}>All Flavors</a>
+      {topCategories.map((cat) => (
+        <a 
+          href={`/?category=${cat.slug}`} 
+          class={categoryParam === cat.slug ? "active" : ""}
+        >
+          {cat.name}
+        </a>
+      ))}
+    </div>
+  </div>
+
+	<PhotoGrid client:load photos={photos} />
+
+  <script is:inline define:vars={{ feedParam }}>
+    if (feedParam === 'following') {
+      localStorage.setItem('lastViewedFollowingFeed', new Date().toISOString());
+    }
+  </script>
+</ClientLayout>
+
+<style>
+  .flavor-bar-wrapper {
+    max-width: 1400px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+  }
+  
+  .flavor-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .flavor-bar a {
+    background: #f5f5f5;
+    border: none;
+    padding: 0.6rem 1.25rem;
+    border-radius: 2rem;
+    font-weight: 600;
+    color: #8b7355;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  
+  .flavor-bar a.active {
+    background: #3d2b1f;
+    color: #fff;
+  }
+  
+  .flavor-bar a:hover:not(.active) {
+    background: #ffc107;
+    color: #3d2b1f;
+  }
+
+  .feed-tabs-wrapper {
+    max-width: 1400px;
+    margin: 3rem auto 0;
+    padding: 0 2rem;
+  }
+
+  .feed-tabs {
+    display: flex;
+    gap: 2rem;
+    border-bottom: 2px solid #eee;
+  }
+
+  .feed-tabs a {
+    text-decoration: none;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #8b7355;
+    padding: 1rem 0.5rem;
+    position: relative;
+    transition: all 0.2s ease;
+  }
+
+  .feed-tabs a.active {
+    color: #3d2b1f;
+  }
+
+  .feed-tabs a.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: #ffc107;
+  }
+
+  .feed-tabs a:hover:not(.active) {
+    color: #ff9800;
+  }
+</style>

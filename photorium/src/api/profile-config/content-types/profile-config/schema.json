@@ -1,0 +1,21 @@
+{
+  "kind": "singleType",
+  "collectionName": "profile_configs",
+  "info": {
+    "singularName": "profile-config",
+    "pluralName": "profile-configs",
+    "displayName": "Profile Config",
+    "description": "Global settings for the profile page header and stats"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "cover_images": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": ["images"],
+      "required": true
+    }
+  }
+}

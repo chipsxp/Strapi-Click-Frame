@@ -1,0 +1,33 @@
+---
+// BlockRenderer.astro
+// Skeleton for rendering Strapi dynamic blocks
+
+export interface Props {
+  blocks: any[];
+}
+
+const { blocks } = Astro.props;
+---
+
+<div class="strapi-blocks">
+  {blocks && blocks.map((block) => {
+    switch (block.__component) {
+      case 'shared.rich-text':
+        return <div set:html={block.body} />;
+      case 'shared.quote':
+        return <blockquote>{block.body}<cite>{block.title}</cite></blockquote>;
+      case 'shared.media':
+        return <img src={block.file?.url} alt={block.file?.alternativeText || ''} />;
+      case 'shared.slider':
+        return (
+          <div class="slider">
+            {block.files?.map((file: any) => (
+              <img src={file.url} alt={file.alternativeText || ''} />
+            ))}
+          </div>
+        );
+      default:
+        return <div>Unknown block type: {block.__component}</div>;
+    }
+  })}
+</div>

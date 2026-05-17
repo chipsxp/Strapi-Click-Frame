@@ -1,0 +1,147 @@
+---
+import ClientLayout from '../layouts/ClientLayout.astro';
+
+const confirmationToken = Astro.url.searchParams.get('confirmation') || Astro.url.searchParams.get('token');
+const strapiUrl = import.meta.env.STRAPI_URL || 'http://127.0.0.1:1337';
+
+let status = 'verifying';
+let message = 'Verifying your recipe...';
+
+if (!confirmationToken) {
+  status = 'error';
+  message = 'Missing confirmation token. Please check your link.';
+} else {
+  try {
+    // Perform verification on the SERVER side
+    // Using strapiUrl which is http://localhost:1337 (internal network)
+    const res = await fetch(`${strapiUrl}/api/auth/email-confirmation?confirmation=${confirmationToken}`, {
+        method: 'GET',
+        redirect: 'manual' 
+    });
+    
+    // Strapi returns a 302 Redirect on success.
+    // If it's 200, it's also a success (depending on version/config).
+    if (res.status === 302 || res.status === 200 || res.ok) {
+      status = 'success';
+      message = 'Stash Verified!';
+    } else {
+      const data = await res.json().catch(() => ({}));
+      status = 'error';
+      message = data.error?.message || `Verification failed (Status: ${res.status}).`;
+    }
+  } catch (err: any) {
+    status = 'error';
+    message = err.message || 'Something went wrong during verification.';
+  }
+}
+---
+
+<ClientLayout title="Confirming Stash | Photorium">
+  <div class="confirm-container">
+    <div class="confirm-card">
+      <div class="brand">
+        <h1>Photorium</h1>
+        <p id="status-text">{status === 'verifying' ? 'Processing...' : ''}</p>
+      </div>
+
+      {status === 'success' && (
+        <div id="success-box" class="success-box">
+          <div class="icon">✓</div>
+          <h2>Stash Verified!</h2>
+          <p>Your recipe is now official. You can now log in to start sharing your art.</p>
+          <a href="/login" class="login-btn">Log In</a>
+        </div>
+      )}
+
+      {status === 'error' && (
+        <div id="error-box" class="error-box">
+          <div class="icon">⚠</div>
+          <h2>Verification Failed</h2>
+          <p id="error-desc">{message}</p>
+          <a href="/signup" class="retry-btn">Back to Signup</a>
+        </div>
+      )}
+    </div>
+  </div>
+</ClientLayout>
+
+<style>
+  .confirm-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 80vh;
+    padding: 2rem;
+  }
+
+  .confirm-card {
+    background: var(--card-bg, #ffffff);
+    padding: 3rem;
+    border-radius: 2rem;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 500px;
+    border: 2px solid #f0f0f0;
+    text-align: center;
+  }
+
+  .brand h1 {
+    font-size: 2.5rem;
+    color: #3d2b1f;
+    margin-bottom: 0.5rem;
+    font-weight: 800;
+  }
+
+  .brand p {
+    color: #8b7355;
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+  }
+
+  .success-box h2 {
+    color: #2e7d32;
+    margin-bottom: 1rem;
+  }
+
+  .success-box .icon {
+    font-size: 4rem;
+    color: #4caf50;
+    margin-bottom: 1rem;
+  }
+
+  .error-box h2 {
+    color: #c62828;
+    margin-bottom: 1rem;
+  }
+
+  .error-box .icon {
+    font-size: 4rem;
+    color: #e53935;
+    margin-bottom: 1rem;
+  }
+
+  .login-btn, .retry-btn {
+    display: inline-block;
+    margin-top: 2rem;
+    padding: 1rem 2rem;
+    background: #3d2b1f;
+    color: white;
+    text-decoration: none;
+    border-radius: 1rem;
+    font-weight: 700;
+    transition: background 0.2s;
+  }
+
+  .login-btn:hover {
+    background: #4caf50;
+  }
+
+  .retry-btn:hover {
+    background: #e53935;
+  }
+
+  p {
+    color: #5d4037;
+    line-height: 1.6;
+  }
+</style>

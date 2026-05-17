@@ -1,0 +1,58 @@
+# Cline Rules — Strapi-Click-Frame
+
+## 🚀 MANDATORY: Before Starting Work
+**Every agent session MUST begin by reading the files in `docs/project_notes/`.** These files contain the ground truth for architecture, decisions, and current state. Never proceed with proposing changes or solutions without confirming the latest technical requirements from `docs/project_notes/key_facts.md` and `docs/project_notes/decisions.md`.
+
+## Project Memory
+
+This project maintains institutional knowledge in `docs/project_notes/`. Always consult these files before proposing changes or solutions.
+
+- **`docs/project_notes/bugs.md`** — Known bugs and their solutions
+- **`docs/project_notes/decisions.md`** — Architectural Decision Records (ADRs)
+- **`docs/project_notes/key_facts.md`** — Versions, ports, endpoints, critical file map
+- **`docs/project_notes/issues.md`** — Work log of completed tasks
+
+### Protocols
+
+1. **Before proposing fixes**: Search `bugs.md` for similar issues.
+2. **Before architectural changes**: Check `decisions.md` for existing ADRs.
+3. **After fixing a bug**: Append an entry to `bugs.md`.
+4. **After a significant decision**: Append an ADR to `decisions.md`.
+5. **After completing work**: Append to `issues.md`.
+6. **When config changes**: Update `key_facts.md`.
+
+---
+
+## Project Overview
+
+Two-project monorepo:
+- **Root** — Strapi 5 backend, runs on `http://localhost:1337`
+- **`react/`** — Astro 6 frontend, runs on `http://localhost:4321`
+
+## Critical Known Issues (from bugs.md)
+
+- **Strapi single types** (`about`, `global`) must use the custom `strapiSingleLoader` in `react/src/content.config.ts` — do NOT pass them to `strapiLoader()`. The community loader only supports collection types.
+- **`clientConfig.baseURL`** must include `/api` suffix: `http://localhost:1337/api`
+- **`categories`** requires `pluralContentType: "categories"` in `strapiLoader()` (irregular plural)
+- **`react/src/env.d.ts`** must contain `/// <reference types="astro/client" />` — do not delete it
+
+## Key Versions
+
+- Strapi: 5.43.0
+- Astro: ^6.1.9
+- `strapi-community-astro-loader`: ^4.0.0 (root package.json — v4 required for Astro 6)
+- Node: >=20.0.0
+
+## Commands
+
+```bash
+# Strapi backend (from repo root)
+npm run dev           # start Strapi with autoreload
+
+# Astro frontend (from react/)
+npm run dev           # start Astro dev server
+npm run build         # build static site
+
+# Seed Strapi with example data
+npm run seed:example  # from repo root
+```

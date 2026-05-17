@@ -1,0 +1,37 @@
+{
+  "kind": "collectionType",
+  "collectionName": "reactions",
+  "info": {
+    "singularName": "reaction",
+    "pluralName": "reactions",
+    "displayName": "Reaction",
+    "description": "Potato chip (like) and Cheese chip (favorite) reactions"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "reactions",
+      "required": true
+    },
+    "photo": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::photo.photo",
+      "inversedBy": "reactions",
+      "required": true
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "classic",
+        "cheddar"
+      ],
+      "required": true
+    }
+  }
+}

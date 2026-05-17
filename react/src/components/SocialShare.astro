@@ -1,0 +1,113 @@
+---
+interface Props {
+  url: string;
+  title: string;
+  description?: string;
+  image?: string;
+}
+
+const { url, title, description = '', image = '' } = Astro.props;
+
+const encodedUrl = encodeURIComponent(url);
+const encodedTitle = encodeURIComponent(title);
+const encodedDescription = encodeURIComponent(description);
+const encodedImage = encodeURIComponent(image);
+
+const shareLinks = [
+  {
+    name: 'X',
+    icon: 'M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z',
+    url: `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`,
+    color: '#000000',
+    hoverColor: '#333333'
+  },
+  {
+    name: 'Facebook',
+    icon: 'M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z',
+    url: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+    color: '#1877F2',
+    hoverColor: '#166fe5'
+  },
+  {
+    name: 'Pinterest',
+    icon: 'M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.966 1.406-5.966s-.359-.72-.359-1.781c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738.098.119.112.224.083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.259 7.929-7.259 4.162 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.631-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146 1.124.347 2.317.535 3.554.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.39 18.592.026 11.985.026L12.017 0z',
+    url: `https://pinterest.com/pin/create/button/?url=${encodedUrl}&media=${encodedImage}&description=${encodedDescription}`,
+    color: '#BD081C',
+    hoverColor: '#ad0719'
+  },
+  {
+    name: 'LinkedIn',
+    icon: 'M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z',
+    url: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
+    color: '#0A66C2',
+    hoverColor: '#004182'
+  }
+];
+---
+
+<div class="social-share-container">
+  <p class="share-label">Share this Stash</p>
+  <div class="share-buttons">
+    {shareLinks.map(link => (
+      <a 
+        href={link.url} 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        class="share-button"
+        style={`--platform-color: ${link.color}; --platform-hover: ${link.hoverColor};`}
+        title={`Share on ${link.name}`}
+      >
+        <svg viewBox="0 0 24 24" width="20" height="20">
+          <path d={link.icon} fill="currentColor" />
+        </svg>
+      </a>
+    ))}
+  </div>
+</div>
+
+<style>
+  .social-share-container {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px dashed #eee;
+  }
+
+  .share-label {
+    font-size: 0.9rem;
+    color: #8b7355;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+
+  .share-buttons {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .share-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #f8f9fa;
+    color: var(--platform-color);
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid #eee;
+  }
+
+  .share-button:hover {
+    background: var(--platform-color);
+    color: #fff;
+    transform: translateY(-3px) scale(1.1);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    border-color: transparent;
+  }
+
+  .share-button svg {
+    display: block;
+  }
+</style>

@@ -1,0 +1,59 @@
+{
+  "kind": "collectionType",
+  "collectionName": "up_users",
+  "info": {
+    "singularName": "user",
+    "pluralName": "users",
+    "displayName": "User"
+  },
+  "attributes": {
+    "nickname": {
+      "type": "string",
+      "maxLength": 50
+    },
+    "real_name": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "bio": {
+      "type": "text",
+      "maxLength": 500
+    },
+    "avatar": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "social_links": {
+      "type": "json"
+    },
+    "special_date": {
+      "type": "date",
+      "private": true
+    },
+    "photos": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::photo.photo",
+      "mappedBy": "author"
+    },
+    "categories": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::category.category",
+      "mappedBy": "user"
+    },
+    "comments": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::comment.comment",
+      "mappedBy": "author"
+    },
+    "reactions": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::reaction.reaction",
+      "mappedBy": "user"
+    }
+  }
+}

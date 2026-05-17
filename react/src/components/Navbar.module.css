@@ -1,0 +1,220 @@
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--nav-bg, #212124);
+  color: var(--nav-text, #ffffff);
+  padding: 0 20px;
+  height: 60px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  transition: background-color 0.3s ease;
+}
+
+.left, .right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex: 1;
+}
+
+.right {
+  justify-content: flex-end;
+}
+
+.center {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.themeSwitch {
+  background: none;
+  border: none;
+  color: var(--nav-text, white);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s ease;
+}
+
+.themeSwitch:hover {
+  transform: scale(1.1);
+}
+
+.mobileThemeSwitch {
+  display: none;
+}
+
+.desktopThemeSwitch {
+  display: flex;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: var(--nav-text, white);
+  font-weight: 800;
+  font-size: 26px;
+  margin-right: 15px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  transition: transform 0.2s ease;
+}
+
+.logo:hover {
+  transform: scale(1.02);
+}
+
+.chips {
+  display: flex;
+  align-items: center;
+  margin-right: 6px;
+  gap: 5px;
+}
+
+.potatoChip, .cheddarChip {
+  width: 21px;
+  height: 36px;
+  display: inline-block;
+}
+
+.potatoChip {
+  background: radial-gradient(ellipse at 20% 50%, #fef4c0 10%, #e0b85c 90%);
+  clip-path: polygon(85% 5%, 30% 20%, 5% 50%, 30% 80%, 85% 95%, 65% 75%, 45% 50%, 65% 25%);
+  transform: rotate(-10deg);
+  filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.4));
+}
+
+.cheddarChip {
+  background: radial-gradient(ellipse at 20% 50%, #ffcc00 10%, #e67300 90%);
+  clip-path: polygon(85% 5%, 30% 20%, 5% 50%, 30% 80%, 85% 95%, 65% 75%, 45% 50%, 65% 25%);
+  transform: rotate(5deg) scale(0.95);
+  filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.5));
+}
+
+.logotext {
+  letter-spacing: -1.5px;
+  background: linear-gradient(to bottom, #ffffff 0%, #e0e0e0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
+}
+
+.navLink {
+  color: var(--nav-text, white);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 15px;
+}
+
+.navLink:hover {
+  opacity: 0.8;
+}
+
+.notificationWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.notificationDot {
+  position: absolute;
+  top: -4px;
+  right: -8px;
+  width: 10px;
+  height: 10px;
+  background-color: var(--accent-color, #ffc107);
+  border-radius: 50%;
+  border: 2px solid var(--nav-bg, #212124);
+  box-shadow: 0 0 5px rgba(255, 193, 7, 0.5);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.searchContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIconBtn {
+  position: absolute;
+  left: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  z-index: 1;
+}
+
+.searchIcon {
+  color: #555;
+  font-size: 18px;
+}
+
+.searchInput {
+  padding: 8px 10px 8px 30px;
+  border-radius: 20px;
+  border: none;
+  outline: none;
+  width: 250px;
+  background-color: var(--bg-color, #f3f5f6);
+  color: var(--text-primary, #3d2b1f);
+  font-size: 14px;
+}
+
+.signupBtn {
+  background-color: var(--btn-primary-text, white);
+  color: var(--btn-primary-bg, black);
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.signupBtn:hover {
+  opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+  .mobileThemeSwitch {
+    display: flex;
+  }
+  
+  .desktopThemeSwitch {
+    display: none;
+  }
+
+  .navbar {
+    height: auto;
+    flex-direction: column;
+    padding: 15px 20px;
+    gap: 15px;
+  }
+  
+  .left, .right {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .center {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  
+  .searchInput {
+    width: 100%;
+  }
+}

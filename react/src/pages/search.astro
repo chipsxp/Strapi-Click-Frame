@@ -1,0 +1,113 @@
+---
+import ClientLayout from '../layouts/ClientLayout.astro';
+import PhotoGrid from '../components/PhotoGrid';
+import type { StrapiPhoto } from '../types/strapi';
+
+// Get search query from URL
+const query = Astro.url.searchParams.get('q') || '';
+
+// Fetch Search Results from Strapi
+const strapiUrl = import.meta.env.STRAPI_URL || 'http://127.0.0.1:1337';
+
+// We'll search in title and description, and also check author names
+let photos: StrapiPhoto[] = [];
+
+if (query.trim()) {
+  const params = new URLSearchParams();
+  params.append('populate', '*');
+  params.append('filters[$or][0][title][$containsi]', query);
+  params.append('filters[$or][1][description][$containsi]', query);
+  params.append('filters[$or][2][category][name][$containsi]', query);
+  
+  const searchUrl = `${strapiUrl}/api/photos?${params.toString()}`;
+  const res = await fetch(searchUrl);
+  const json = await res.json();
+  photos = json.data || [];
+}
+---
+
+<ClientLayout title={`Search results for "${query}" | Photorium`}>
+  <div class="search-results-container">
+    <header class="search-header">
+      <h1>Results for "{query}"</h1>
+      <p class="stats">{photos.length} photos found</p>
+    </header>
+
+    {photos.length > 0 ? (
+      <PhotoGrid client:load photos={photos} />
+    ) : (
+      <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <h2>No art found in the stash</h2>
+        <p>Try searching for different flavors or artists.</p>
+        <a href="/" class="back-link">Back to Galleries</a>
+      </div>
+    )}
+  </div>
+</ClientLayout>
+
+<style>
+  .search-results-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 4rem 2rem;
+  }
+
+  .search-header {
+    margin-bottom: 3rem;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 2rem;
+  }
+
+  .search-header h1 {
+    font-size: 2.5rem;
+    color: #3d2b1f;
+    margin-bottom: 0.5rem;
+    font-weight: 800;
+  }
+
+  .search-header .stats {
+    color: #8b7355;
+    font-size: 1.1rem;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 6rem 2rem;
+    background: #fff;
+    border-radius: 2rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  }
+
+  .empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .empty-state h2 {
+    font-size: 2rem;
+    color: #3d2b1f;
+    margin-bottom: 1rem;
+  }
+
+  .empty-state p {
+    color: #8b7355;
+    margin-bottom: 2rem;
+  }
+
+  .back-link {
+    display: inline-block;
+    background: #3d2b1f;
+    color: #fff;
+    padding: 1rem 2.5rem;
+    border-radius: 2rem;
+    text-decoration: none;
+    font-weight: 700;
+    transition: all 0.2s ease;
+  }
+
+  .back-link:hover {
+    background: #ffc107;
+    color: #3d2b1f;
+  }
+</style>

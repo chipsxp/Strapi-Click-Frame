@@ -1,0 +1,148 @@
+{
+  "kind": "collectionType",
+  "collectionName": "up_users",
+  "info": {
+    "singularName": "user",
+    "pluralName": "users",
+    "displayName": "User"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "username": {
+      "type": "string",
+      "minLength": 3,
+      "unique": true,
+      "configurable": false,
+      "required": true
+    },
+    "email": {
+      "type": "email",
+      "minLength": 3,
+      "configurable": false,
+      "required": true
+    },
+    "password": {
+      "type": "password",
+      "minLength": 6,
+      "configurable": false,
+      "private": true,
+      "searchable": false
+    },
+    "provider": {
+      "type": "string",
+      "configurable": false
+    },
+    "resetPasswordToken": {
+      "type": "string",
+      "configurable": false,
+      "private": true,
+      "searchable": false
+    },
+    "registrationToken": {
+      "type": "string",
+      "configurable": false,
+      "private": true,
+      "searchable": false
+    },
+    "confirmationToken": {
+      "type": "string",
+      "configurable": false,
+      "private": true,
+      "searchable": false
+    },
+    "confirmed": {
+      "type": "boolean",
+      "default": false,
+      "configurable": false
+    },
+    "blocked": {
+      "type": "boolean",
+      "default": false,
+      "configurable": false
+    },
+    "role": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.role",
+      "inversedBy": "users",
+      "configurable": false
+    },
+    "nickname": {
+      "type": "string",
+      "maxLength": 50
+    },
+    "real_name": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "bio": {
+      "type": "text",
+      "maxLength": 500
+    },
+    "avatar": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "social_links": {
+      "type": "json"
+    },
+    "special_date": {
+      "type": "date",
+      "private": true
+    },
+    "photos": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::photo.photo",
+      "mappedBy": "author"
+    },
+    "categories": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::category.category",
+      "mappedBy": "user"
+    },
+    "comments": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::comment.comment",
+      "mappedBy": "author"
+    },
+    "reactions": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::reaction.reaction",
+      "mappedBy": "user"
+    },
+    "last_classic_munch_at": {
+      "type": "datetime"
+    },
+    "classic_munch_given_total": {
+      "type": "integer",
+      "default": 0,
+      "min": 0
+    },
+    "cheddar_munch_balance": {
+      "type": "integer",
+      "default": 0,
+      "min": 0
+    },
+    "following": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "followers"
+    },
+    "followers": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "plugin::users-permissions.user",
+      "mappedBy": "following"
+    }
+  }
+}

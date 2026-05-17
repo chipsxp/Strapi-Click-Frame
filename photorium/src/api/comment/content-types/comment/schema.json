@@ -1,0 +1,46 @@
+{
+  "kind": "collectionType",
+  "collectionName": "comments",
+  "info": {
+    "singularName": "comment",
+    "pluralName": "comments",
+    "displayName": "Comment",
+    "description": "Comments with single reply support (1 comment + 1 reply max)"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "content": {
+      "type": "text",
+      "required": true,
+      "maxLength": 500
+    },
+    "author": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "comments",
+      "required": true
+    },
+    "photo": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::photo.photo",
+      "inversedBy": "comments",
+      "required": true
+    },
+    "parent": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::comment.comment",
+      "inversedBy": "reply"
+    },
+    "reply": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::comment.comment",
+      "mappedBy": "parent"
+    }
+  }
+}

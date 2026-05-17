@@ -1,0 +1,1310 @@
+---
+import ClientLayout from "../layouts/ClientLayout.astro";
+import type { StrapiPhoto, StrapiCategory, StrapiMedia } from "../types/strapi";
+
+const { user: initialUser, token } = Astro.locals;
+
+if (!initialUser) {
+  return Astro.redirect("/login");
+}
+
+const strapiUrl = import.meta.env.STRAPI_URL || "http://localhost:1337";
+
+// Fallback: If role is missing, fetch the full user profile
+let user = initialUser;
+if (!user.role) {
+  try {
+    const userRes = await fetch(`${strapiUrl}/api/users/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (userRes.ok) {
+      user = await userRes.json();
+    }
+  } catch (e) {
+    console.error("Failed to fetch user role fallback:", e);
+  }
+}
+const response = await fetch(
+  `${strapiUrl}/api/photos?filters[author][id][$eq]=${user.id}&populate=image`,
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  },
+);
+
+const photosJson = await response.json() as { data: StrapiPhoto[] };
+const photos: StrapiPhoto[] = photosJson.data || [];
+
+// Fetch user's categories - Editors see all flavors, regular users see their own
+const categoriesUrl = (user.role?.type === "editor" || user.role?.type === "admin")
+  ? `${strapiUrl}/api/categories?sort=name:asc`
+  : `${strapiUrl}/api/categories?filters[user][id][$eq]=${user.id}&sort=name:asc`;
+
+const categoriesRes = await fetch(categoriesUrl, {
+  headers: {
+    Authorization: `Bearer ${token}`,
+  },
+});
+const categoriesJson = await categoriesRes.json() as { data: StrapiCategory[] };
+const categories: StrapiCategory[] = categoriesJson.data || [];
+
+/**
+ * Safely resolves image URLs from Strapi 5 Media objects
+ */
+function getImageUrl(media: StrapiMedia | undefined | null): string | undefined {
+  if (!media) return undefined;
+  // Handle direct URL (ImageKit or populated)
+  if (media.url) return media.url;
+  // Handle Strapi 5 attributes structure
+  if (media.data?.attributes?.url) return media.data.attributes.url;
+  return undefined;
+}
+
+const resolveImageUrl = (url: string | undefined | null) => {
+  if (!url) return "/favicon.png";
+  return url.startsWith("http") ? url : `${strapiUrl}${url}`;
+};
+---
+
+<ClientLayout title="Author Dashboard | Photorium">
+  <div class="dashboard-container">
+    <aside class="sidebar">
+      <div class="profile-card">
+        <div class="avatar-ring">
+          <img
+            src={resolveImageUrl(getImageUrl(user.avatar))}
+            alt={user.username}
+          />
+        </div>
+        <h2>{user.username}</h2>
+        <p class="bio">
+          {user.bio || "No bio yet. Add one to spice things up!"}
+        </p>
+
+        <div class="stats-mini">
+          <div class="stat-item">
+            <span class="value">{user.classic_munch_given_total || 0}</span>
+            <span class="label">Given</span>
+          </div>
+          <div class="stat-item">
+            <span class="value">{user.cheddar_munch_balance || 0}</span>
+            <span class="label">Cheddar</span>
+          </div>
+        </div>
+
+        <button
+          id="edit-profile-btn"
+          class="secondary-btn"
+          style="margin-bottom: 1rem; width: 100%;">Edit Profile</button
+        >
+        {
+          (user.role?.type === "editor" || user.role?.type === "admin") && (
+            <button
+              id="manage-flavors-btn"
+              class="secondary-btn"
+              style="margin-bottom: 1rem; width: 100%;"
+            >
+              Manage Flavors
+            </button>
+          )
+        }
+        <button id="logout-btn" class="logout-btn">Log Out</button>
+      </div>
+    </aside>
+
+    <main class="content">
+      <!-- Notification Feed -->
+      <div id="notification-feed" class="notification-feed" style="display: none;">
+        <div class="notification-header">
+          <h3>Recent Sizzles</h3>
+          <span class="notification-subtitle">From artists you follow</span>
+        </div>
+        <div id="notification-list" class="notification-list">
+          <!-- Notifications will be injected here -->
+        </div>
+      </div>
+
+      <header class="section-header">
+        <h1>Your Stash</h1>
+        <button id="open-upload-btn" class="primary-btn"
+          >Toss in the Fryer</button
+        >
+      </header>
+
+      <div class="photo-grid">
+        {
+          photos.length > 0 ? (
+            photos.map((photo) => (
+              <div class="photo-item">
+                <a href={`/photo/${photo.documentId}`}>
+                  <img
+                    src={resolveImageUrl(
+                      photo.ik_url || getImageUrl(photo.image)
+                    )}
+                    alt={photo.title}
+                  />
+                </a>
+                <div class="photo-info">
+                  <a
+                    href={`/photo/${photo.documentId}`}
+                    style="text-decoration: none; color: inherit;"
+                  >
+                    <h3>{photo.title}</h3>
+                  </a>
+                  <div class="photo-actions-row">
+                    <div class="counts">
+                      <span>🍟 {photo.classic_munch_count || 0}</span>
+                      <span>🧀 {photo.cheddar_munch_count || 0}</span>
+                    </div>
+                    <div class="self-service-actions">
+                      <button
+                        class="edit-photo-btn"
+                        data-id={photo.documentId}
+                        data-title={photo.title}
+                        data-description={photo.description}
+                        data-category={photo.categories?.map(c => c.name).join(', ') || ""}
+                        title="Edit Photo"
+                      >
+                        ✏️
+                      </button>
+                      <button
+                        class="delete-photo-btn"
+                        data-id={photo.documentId}
+                        title="Delete Photo"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div class="empty-state">
+              <p>Your stash is empty. Start frying some art!</p>
+            </div>
+          )
+        }
+      </div>
+    </main>
+
+    <!-- Global Confirmation Modal -->
+    <div id="confirm-modal" class="modal">
+      <div class="modal-content" style="max-width: 450px;">
+        <h2 id="confirm-title">Are you sure?</h2>
+        <p id="confirm-message" style="margin-bottom: 2rem;"></p>
+        <div class="actions">
+          <button type="button" id="confirm-cancel-btn" class="secondary-btn">Cancel</button>
+          <button type="button" id="confirm-ok-btn" class="primary-btn" style="background: #d32f2f;">Confirm</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Manage Flavors Modal -->
+    <div id="flavors-modal" class="modal">
+      <div class="modal-content" style="max-width: 800px;">
+        <h2>Manage Your Flavors</h2>
+        <p style="margin-bottom: 1.5rem; color: #666; font-size: 0.9rem;">Rename, merge, or delete categories you've created.</p>
+        <div class="flavors-list">
+          {categories.length > 0 ? (
+            categories.map((cat) => (
+              <div class="flavor-card" data-id={cat.documentId}>
+                <div class="flavor-info">
+                   <input type="text" class="flavor-name-input" value={cat.name} data-original={cat.name} />
+                </div>
+                <div class="flavor-actions">
+                  <button class="rename-flavor-btn" title="Save Rename">💾</button>
+                  <div class="merge-zone">
+                    <select class="merge-target-select">
+                      <option value="">Merge into...</option>
+                      {categories.filter((c) => c.documentId !== cat.documentId).map((c) => (
+                        <option value={c.documentId}>{c.name}</option>
+                      ))}
+                    </select>
+                    <button class="merge-flavor-btn" title="Merge Content">🤝</button>
+                  </div>
+                  <button class="delete-flavor-btn" title="Delete Flavor">🗑️</button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div class="empty-state">
+              <p>You haven't created any flavors yet.</p>
+            </div>
+          )}
+        </div>
+        <div class="actions">
+          <button type="button" id="close-flavors-btn" class="secondary-btn">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile Edit Modal -->
+    <div id="profile-modal" class="modal">
+      <div class="modal-content">
+        <h2>Profile Settings</h2>
+        <form id="profile-form">
+          <div class="field">
+            <label>Avatar (The Face of the Artist)</label>
+            <input type="file" name="avatar" accept="image/*" />
+          </div>
+          <div class="field">
+            <label>Username (Unique Handle)</label>
+            <input
+              type="text"
+              name="username"
+              value={user.username || ""}
+              placeholder="Artist_Handle"
+              required
+            />
+          </div>
+          <div class="field">
+            <label>Nickname (Display Name)</label>
+            <input
+              type="text"
+              name="nickname"
+              value={user.nickname || ""}
+              placeholder="Cool Artist Alias"
+            />
+          </div>
+          <div class="field">
+            <label>The Artist's Lore (Bio)</label>
+            <textarea name="bio" placeholder="Tell your story..."
+              >{user.bio || ""}</textarea
+            >
+          </div>
+          <div class="actions">
+            <button type="button" id="close-profile-btn" class="secondary-btn"
+              >Cancel</button
+            >
+            <button type="submit" class="primary-btn">Save Profile</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Upload Modal -->
+    <div id="upload-modal" class="modal">
+      <div class="modal-content">
+        <h2>New Batch</h2>
+        <form id="upload-form">
+          <div class="field">
+            <label>The Goods (Image)</label>
+            <input type="file" name="files" required accept="image/*" />
+          </div>
+          <div class="field">
+            <label>Title</label>
+            <input
+              type="text"
+              name="title"
+              required
+              placeholder="Name your creation"
+            />
+          </div>
+          <div class="field">
+            <label>Category (Flavor)</label>
+            <input
+              type="text"
+              name="category"
+              required
+              placeholder="e.g. Boy Scouts, Panics, Retro"
+            />
+          </div>
+          <div class="field">
+            <label>Story (Description)</label>
+            <textarea
+              name="description"
+              required
+              placeholder="What's the secret ingredient?"></textarea>
+          </div>
+          <div class="actions">
+            <button type="button" id="close-upload-btn" class="secondary-btn"
+              >Cancel</button
+            >
+            <button type="submit" class="primary-btn">Fry It!</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Edit Photo Modal -->
+    <div id="edit-photo-modal" class="modal">
+      <div class="modal-content">
+        <h2>Edit Photo</h2>
+        <form id="edit-photo-form">
+          <input type="hidden" name="photoId" id="edit-photo-id" />
+          <div class="field">
+            <label>Title</label>
+            <input
+              type="text"
+              name="title"
+              id="edit-photo-title"
+              required
+              placeholder="Name your creation"
+            />
+          </div>
+          <div class="field">
+            <label>Category (Flavor)</label>
+            <input
+              type="text"
+              name="category"
+              id="edit-photo-category"
+              required
+              placeholder="e.g. Boy Scouts, Panics, Retro"
+            />
+          </div>
+          <div class="field">
+            <label>Story (Description)</label>
+            <textarea
+              name="description"
+              id="edit-photo-description"
+              required
+              placeholder="What's the secret ingredient?"></textarea>
+          </div>
+          <div class="actions">
+            <button
+              type="button"
+              id="close-edit-photo-btn"
+              class="secondary-btn">Cancel</button
+            >
+            <button type="submit" class="primary-btn">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</ClientLayout>
+
+<script>
+  import toast from "react-hot-toast";
+
+  // Logout Logic
+  document.getElementById("logout-btn")?.addEventListener("click", async () => {
+    await fetch("/api/logout", { method: "POST" });
+    window.location.href = "/";
+  });
+
+  // Modal Logic Helpers
+  const openModal = (id: string) => document.getElementById(id)?.classList.add("open");
+  const closeModal = (id: string) => document.getElementById(id)?.classList.remove("open");
+
+  // Simple Themed Confirmation Utility
+  const askConfirmation = (title: string, message: string, onConfirm: () => void) => {
+    const titleEl = document.getElementById("confirm-title");
+    const msgEl = document.getElementById("confirm-message");
+    const okBtn = document.getElementById("confirm-ok-btn");
+    
+    if (titleEl) titleEl.innerText = title;
+    if (msgEl) msgEl.innerText = message;
+    
+    const cleanup = () => {
+      closeModal("confirm-modal");
+      okBtn?.removeEventListener("click", handleOk);
+    };
+
+    const handleOk = () => {
+      onConfirm();
+      cleanup();
+    };
+
+    okBtn?.addEventListener("click", handleOk);
+    document.getElementById("confirm-cancel-btn")?.addEventListener("click", cleanup, { once: true });
+    
+    openModal("confirm-modal");
+  };
+
+  // Upload Modal
+  document.getElementById("open-upload-btn")?.addEventListener("click", () => openModal("upload-modal"));
+  document.getElementById("close-upload-btn")?.addEventListener("click", () => closeModal("upload-modal"));
+
+  // Flavors Modal
+  document.getElementById("manage-flavors-btn")?.addEventListener("click", () => openModal("flavors-modal"));
+  document.getElementById("close-flavors-btn")?.addEventListener("click", () => closeModal("flavors-modal"));
+
+  // Rename Flavor
+  document.querySelectorAll(".rename-flavor-btn").forEach((btn) => {
+    btn.addEventListener("click", async (e) => {
+      const target = e.currentTarget as HTMLButtonElement;
+      const card = target.closest(".flavor-card") as HTMLElement;
+      const id = card.dataset.id;
+      const input = card.querySelector(".flavor-name-input") as HTMLInputElement;
+      const newName = input.value.trim();
+      const originalName = input.dataset.original;
+
+      if (!id || !newName || newName === originalName) return;
+
+      const toastId = toast.loading("Renaming flavor...");
+      try {
+        const res = await fetch("/api/rename-category", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ documentId: id, name: newName }),
+        });
+
+        if (res.ok) {
+          toast.success("Flavor renamed!", { id: toastId });
+          input.dataset.original = newName;
+          setTimeout(() => window.location.reload(), 1000);
+        } else {
+          const err = await res.json() as { error?: string };
+          throw new Error(err.error || "Failed to rename flavor");
+        }
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : "Network error";
+        toast.error(message, { id: toastId });
+      }
+    });
+  });
+
+  // Merge Flavor
+  document.querySelectorAll(".merge-flavor-btn").forEach((btn) => {
+    btn.addEventListener("click", async (e) => {
+      const target = e.currentTarget as HTMLButtonElement;
+      const card = target.closest(".flavor-card") as HTMLElement;
+      const sourceId = card.dataset.id;
+      const select = card.querySelector(".merge-target-select") as HTMLSelectElement;
+      const targetId = select.value;
+
+      if (!targetId) {
+        toast.error("Please select a destination flavor to merge into.");
+        return;
+      }
+
+      askConfirmation(
+        "Merge Flavors",
+        "Merge all photos into the destination and delete this flavor? This cannot be undone.",
+        async () => {
+          const toastId = toast.loading("Merging flavors...");
+          try {
+            const res = await fetch("/api/merge-category", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ sourceDocumentId: sourceId, targetDocumentId: targetId }),
+            });
+
+            if (res.ok) {
+              toast.success("Flavors merged successfully!", { id: toastId });
+              setTimeout(() => window.location.reload(), 1000);
+            } else {
+              const err = await res.json() as { error?: string };
+              throw new Error(err.error || "Failed to merge flavors");
+            }
+          } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Network error";
+            toast.error(message, { id: toastId });
+          }
+        }
+      );
+    });
+  });
+
+  // Delete Flavor
+  document.querySelectorAll(".delete-flavor-btn").forEach((btn) => {
+    btn.addEventListener("click", async (e) => {
+      const target = e.currentTarget as HTMLButtonElement;
+      const card = target.closest(".flavor-card") as HTMLElement;
+      const id = card.dataset.id;
+
+      askConfirmation(
+        "Delete Flavor",
+        "Are you sure you want to delete this flavor? Photos will become 'Uncategorized'.",
+        async () => {
+          const toastId = toast.loading("Deleting flavor...");
+          try {
+            const res = await fetch("/api/delete-category", {
+              method: "DELETE",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ documentId: id }),
+            });
+
+            if (res.ok) {
+              toast.success("Flavor deleted!", { id: toastId });
+              setTimeout(() => window.location.reload(), 1000);
+            } else {
+              const err = await res.json() as { error?: string };
+              throw new Error(err.error || "Failed to delete flavor");
+            }
+          } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Network error";
+            toast.error(message, { id: toastId });
+          }
+        }
+      );
+    });
+  });
+
+  // Profile Modal
+  document.getElementById("edit-profile-btn")?.addEventListener("click", () => openModal("profile-modal"));
+  document.getElementById("close-profile-btn")?.addEventListener("click", () => closeModal("profile-modal"));
+
+  const profileForm = document.getElementById("profile-form") as HTMLFormElement;
+  profileForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = new FormData(profileForm);
+    const avatarFile = formData.get("avatar") as File;
+    const submitBtn = profileForm.querySelector('button[type="submit"]') as HTMLButtonElement;
+
+    try {
+      if (submitBtn) submitBtn.disabled = true;
+      const toastId = toast.loading("Updating profile...");
+      let avatarId = null;
+
+      if (avatarFile && avatarFile.size > 0) {
+        const uploadData = new FormData();
+        uploadData.append("files", avatarFile);
+        const uploadRes = await fetch("/api/upload", { method: "POST", body: uploadData });
+        if (!uploadRes.ok) throw new Error("Avatar upload failed");
+        const uploadedFiles = await uploadRes.json() as { id: number }[];
+        avatarId = uploadedFiles[0].id;
+      }
+
+      const updateRes = await fetch("/api/update-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: formData.get("username"),
+          nickname: formData.get("nickname"),
+          bio: formData.get("bio"),
+          avatar: avatarId || undefined,
+        }),
+      });
+
+      if (updateRes.ok) {
+        toast.success("Profile updated successfully!", { id: toastId });
+        setTimeout(() => window.location.reload(), 1000);
+      } else {
+        const err = await updateRes.json() as { error?: string };
+        throw new Error(err.error || "Unknown error");
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Network error";
+      toast.error("Failed to update profile: " + message);
+    } finally {
+      if (submitBtn) submitBtn.disabled = false;
+    }
+  });
+
+  // Upload Logic
+  const uploadForm = document.getElementById("upload-form") as HTMLFormElement;
+  uploadForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = new FormData(uploadForm);
+    const submitBtn = uploadForm.querySelector('button[type="submit"]') as HTMLButtonElement;
+
+    try {
+      if (submitBtn) submitBtn.disabled = true;
+      const toastId = toast.loading("Frying photo...");
+
+      const uploadRes = await fetch("/api/upload", { method: "POST", body: formData });
+      if (!uploadRes.ok) throw new Error("Upload failed");
+      const uploadedFiles = await uploadRes.json() as { id: number }[];
+      const fileId = uploadedFiles[0].id;
+
+      const createRes = await fetch("/api/create-photo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: formData.get("title"),
+          description: formData.get("description"),
+          category: formData.get("category"),
+          image: fileId,
+        }),
+      });
+
+      if (createRes.ok) {
+        toast.success("Photo fried successfully!", { id: toastId });
+        setTimeout(() => window.location.reload(), 1000);
+      } else {
+        throw new Error("Failed to save metadata");
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Network error";
+      toast.error("Something went wrong during upload: " + message);
+    } finally {
+      if (submitBtn) submitBtn.disabled = false;
+    }
+  });
+
+  // Edit Photo Logic
+  const editPhotoForm = document.getElementById("edit-photo-form") as HTMLFormElement;
+  document.getElementById("close-edit-photo-btn")?.addEventListener("click", () => closeModal("edit-photo-modal"));
+
+  document.querySelectorAll(".edit-photo-btn").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const target = e.currentTarget as HTMLButtonElement;
+      const { id, title, description, category } = target.dataset;
+
+      (document.getElementById("edit-photo-id") as HTMLInputElement).value = id || "";
+      (document.getElementById("edit-photo-title") as HTMLInputElement).value = title || "";
+      (document.getElementById("edit-photo-description") as HTMLTextAreaElement).value = description || "";
+      (document.getElementById("edit-photo-category") as HTMLInputElement).value = category || "";
+
+      openModal("edit-photo-modal");
+    });
+  });
+
+  editPhotoForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = new FormData(editPhotoForm);
+    const submitBtn = editPhotoForm.querySelector('button[type="submit"]') as HTMLButtonElement;
+
+    try {
+      if (submitBtn) submitBtn.disabled = true;
+      const toastId = toast.loading("Saving changes...");
+
+      const updateRes = await fetch("/api/update-photo", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          photoId: formData.get("photoId"),
+          title: formData.get("title"),
+          description: formData.get("description"),
+          category: formData.get("category"),
+        }),
+      });
+
+      if (updateRes.ok) {
+        toast.success("Photo updated successfully!", { id: toastId });
+        setTimeout(() => window.location.reload(), 1000);
+      } else {
+        const err = await updateRes.json() as { error?: string };
+        throw new Error(err.error || "Failed to update photo");
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Network error";
+      toast.error(message);
+    } finally {
+      if (submitBtn) submitBtn.disabled = false;
+    }
+  });
+
+  // Delete Photo Logic
+  document.querySelectorAll(".delete-photo-btn").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const target = e.currentTarget as HTMLButtonElement;
+      const id = target.dataset.id;
+
+      askConfirmation(
+        "Delete Photo",
+        "Are you sure you want to delete this photo? This cannot be undone.",
+        async () => {
+          const toastId = toast.loading("Deleting photo...");
+          try {
+            const delRes = await fetch("/api/delete-photo", {
+              method: "DELETE",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ photoId: id }),
+            });
+
+            if (delRes.ok) {
+              toast.success("Photo deleted!", { id: toastId });
+              setTimeout(() => window.location.reload(), 1000);
+            } else {
+              const err = await delRes.json() as { error?: string };
+              throw new Error(err.error || "Failed to delete photo");
+            }
+          } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Network error";
+            toast.error(message, { id: toastId });
+          }
+        }
+      );
+    });
+  });
+
+  // --- Notification Feed Logic ---
+  let notifications: any[] = [];
+  const MAX_NOTIFICATIONS = 6;
+  const POLLING_INTERVAL = 120000; // 2 minutes
+
+  const formatTime = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    return `${diffDays}d ago`;
+  };
+
+  const renderNotifications = () => {
+    const listEl = document.getElementById("notification-list");
+    const feedEl = document.getElementById("notification-feed");
+    
+    if (!listEl || !feedEl) return;
+    
+    if (notifications.length === 0) {
+      feedEl.style.display = "none";
+      return;
+    }
+
+    feedEl.style.display = "block";
+    listEl.innerHTML = notifications.map(notif => `
+      <div class="notification-item" data-id="${notif.documentId}">
+        <a href="/photo/${notif.documentId}" class="notif-link">
+          <img src="${notif.authorAvatar}" class="notif-avatar" alt="${notif.authorName}" />
+          <div class="notif-content">
+            <span class="notif-text"><strong>${notif.authorName}</strong> tossed <strong>${notif.title}</strong> into the fryer!</span>
+            <span class="notif-meta">${formatTime(notif.createdAt)}</span>
+          </div>
+        </a>
+        <button class="notif-dismiss" title="Dismiss">×</button>
+      </div>
+    `).join('');
+
+    // Add dismiss listeners
+    listEl.querySelectorAll(".notif-dismiss").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const item = (e.currentTarget as HTMLElement).closest(".notification-item") as HTMLElement;
+        const id = item.dataset.id;
+        notifications = notifications.filter(n => n.documentId !== id);
+        renderNotifications();
+      });
+    });
+  };
+
+  const pollNotifications = async () => {
+    try {
+      const res = await fetch("/api/notifications");
+      if (!res.ok) return;
+      const { data } = await res.json();
+      
+      if (!data || data.length === 0) return;
+
+      const strapiUrl = "http://localhost:1337"; // Fallback for client-side if needed
+
+      const newItems = data.map((photo: any) => ({
+        documentId: photo.documentId,
+        title: photo.title,
+        authorName: photo.author?.username || "An artist",
+        authorAvatar: photo.author?.avatar?.url 
+          ? (photo.author.avatar.url.startsWith("http") ? photo.author.avatar.url : `${strapiUrl}${photo.author.avatar.url}`)
+          : "/favicon.png",
+        createdAt: photo.createdAt
+      }));
+
+      // Merge and unique by documentId, keeping newest
+      const seenIds = new Set(notifications.map(n => n.documentId));
+      const freshItems = newItems.filter((n: any) => !seenIds.has(n.documentId));
+
+      if (freshItems.length > 0) {
+        notifications = [...freshItems, ...notifications].slice(0, MAX_NOTIFICATIONS);
+        renderNotifications();
+      }
+    } catch (err) {
+      console.error("Polling error:", err);
+    }
+  };
+
+  // Initial poll and start interval
+  pollNotifications();
+  setInterval(pollNotifications, POLLING_INTERVAL);
+</script>
+
+<style>
+  .dashboard-container {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 3rem;
+    padding: 4rem 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .sidebar {
+    position: sticky;
+    top: 6rem;
+    height: fit-content;
+  }
+
+  .profile-card {
+    background: var(--card-bg);
+    padding: 3rem 2rem;
+    border-radius: 2.5rem;
+    text-align: center;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border-color);
+  }
+
+  .avatar-ring {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 1.5rem;
+    padding: 5px;
+    background: linear-gradient(45deg, #ffc107, #ff9800);
+    border-radius: 50%;
+  }
+
+  .avatar-ring img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--card-bg);
+  }
+
+  .stats-mini {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin: 2rem 0;
+    padding: 1.5rem 0;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .stat-item {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .stat-item .value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .stat-item .label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3rem;
+  }
+
+  .section-header h1 {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--text-primary);
+  }
+
+  .photo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 2rem;
+  }
+
+  .photo-item {
+    background: var(--card-bg);
+    border-radius: 1.5rem;
+    overflow: hidden;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.03);
+    border: 1px solid var(--border-color);
+    transition: transform 0.3s ease;
+  }
+
+  .photo-item:hover {
+    transform: translateY(-8px);
+  }
+
+  .photo-item img {
+    width: 100%;
+    aspect-ratio: 4/5;
+    object-fit: cover;
+  }
+
+  .photo-info {
+    padding: 1.5rem;
+  }
+
+  .photo-info h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+  }
+
+  .counts {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+  }
+
+  .photo-actions-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5rem;
+  }
+
+  .self-service-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .edit-photo-btn,
+  .delete-photo-btn {
+    background: var(--bg-color);
+    border: none;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    color: var(--text-primary);
+  }
+
+  .edit-photo-btn:hover {
+    background: var(--accent-color);
+    color: var(--btn-primary-text);
+  }
+
+  .delete-photo-btn:hover {
+    background: #ffebee;
+    color: #d32f2f;
+  }
+
+  .primary-btn {
+    background: var(--btn-primary-bg);
+    color: var(--btn-primary-text);
+    padding: 1rem 2rem;
+    border-radius: 1rem;
+    border: none;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .primary-btn:hover {
+    background: var(--accent-color);
+    color: var(--btn-primary-text);
+  }
+
+  .logout-btn {
+    background: transparent;
+    color: #d32f2f;
+    border: 1px solid #ffcdd2;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    font-weight: 600;
+    width: 100%;
+  }
+
+  .logout-btn:hover {
+    background: #ffebee;
+  }
+
+  /* Modal Styles */
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--modal-overlay);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 1000;
+  }
+
+  .modal.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Ensure confirmation modal is always on top of other modals */
+  #confirm-modal {
+    z-index: 1100;
+  }
+
+  .modal-content {
+    background: var(--card-bg);
+    padding: 3rem;
+    border-radius: 2rem;
+    width: 100%;
+    max-width: 600px;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+    color: var(--text-primary);
+  }
+
+  .field {
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .field input,
+  .field textarea {
+    padding: 1rem;
+    border-radius: 0.75rem;
+    border: 2px solid var(--border-color);
+    background: var(--input-bg);
+    color: var(--text-primary);
+    font-family: inherit;
+  }
+
+  .field textarea {
+    height: 120px;
+    resize: none;
+  }
+
+  .actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  .secondary-btn {
+    background: var(--border-color);
+    color: var(--text-primary);
+    padding: 1rem 2rem;
+    border-radius: 1rem;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  @media (max-width: 900px) {
+    .dashboard-container {
+      grid-template-columns: 1fr;
+    }
+    .sidebar {
+      position: relative;
+      top: 0;
+    }
+  }
+
+  /* Flavor Management Styles */
+  .flavors-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .flavor-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+  }
+
+  .flavor-info {
+    flex-grow: 1;
+    margin-right: 1rem;
+  }
+
+  .flavor-name-input {
+    width: 100%;
+    border: 1px solid transparent;
+    background: transparent;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+  }
+
+  .flavor-name-input:focus {
+    background: var(--input-bg);
+    border-color: var(--accent-color);
+    outline: none;
+  }
+
+  .flavor-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .rename-flavor-btn,
+  .delete-flavor-btn,
+  .merge-flavor-btn {
+    background: var(--bg-color);
+    border: none;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: all 0.2s ease;
+    color: var(--text-primary);
+  }
+
+  .rename-flavor-btn:hover { background: #e8f5e9; color: #1b5e20; }
+  .delete-flavor-btn:hover { background: #ffebee; color: #d32f2f; }
+  .merge-flavor-btn:hover { background: #fff8e1; color: #f57f17; }
+
+  .merge-zone {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--bg-color);
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.75rem;
+  }
+
+  .merge-target-select {
+    padding: 0.4rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--border-color);
+    background: var(--input-bg);
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    max-width: 150px;
+  }
+
+  /* Notification Feed Styles (Global because they are injected via JS) */
+  :global(.notification-feed) {
+    background: linear-gradient(135deg, #fffcf5 0%, #fff9e6 100%);
+    border: 1px solid #ffe082;
+    border-radius: 1.5rem;
+    padding: 1rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 20px rgba(255, 193, 7, 0.08);
+  }
+
+  :global(.notification-header) {
+    margin-bottom: 0.75rem;
+    border-bottom: 1px solid #ffecb3;
+    padding-bottom: 0.5rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+
+  :global(.notification-header h3) {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #f57c00;
+    margin: 0;
+  }
+
+  :global(.notification-subtitle) {
+    font-size: 0.7rem;
+    color: #ffa000;
+    font-weight: 600;
+  }
+
+  :global(.notification-list) {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+  }
+
+  :global(.notification-item) {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: white;
+    padding: 0.5rem 0.75rem;
+    border-radius: 1rem;
+    border: 1px solid #fff8e1;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+    transition: all 0.2s ease;
+    animation: slideIn 0.3s ease-out;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  :global(.notification-item:hover) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+  }
+
+  :global(.notif-avatar) {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #ffecb3;
+    flex-shrink: 0;
+  }
+
+  :global(.notif-content) {
+    flex-grow: 1;
+    min-width: 0;
+  }
+
+  :global(.notif-text) {
+    font-size: 0.8rem;
+    color: var(--text-primary);
+    line-height: 1.3;
+    display: block;
+    word-wrap: break-word; /* Allow wrapping */
+    overflow: visible;
+  }
+
+  :global(.notif-text strong) {
+    color: #e65100;
+  }
+
+  :global(.notif-meta) {
+    display: block;
+    font-size: 0.6rem;
+    color: var(--text-secondary);
+  }
+
+  :global(.notif-dismiss) {
+    background: none;
+    border: none;
+    font-size: 0.8rem;
+    cursor: pointer;
+    padding: 0.1rem;
+    color: #ffccbc;
+    transition: color 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  :global(.notif-dismiss:hover) {
+    color: #ff5722;
+  }
+
+  :global(.notif-link) {
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-grow: 1;
+    min-width: 0;
+  }
+
+  @media (max-width: 1100px) {
+    :global(.notification-list) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 600px) {
+    :global(.notification-list) {
+      grid-template-columns: 1fr;
+    }
+    :global(.notification-feed) {
+      padding: 0.75rem;
+      border-radius: 1rem;
+    }
+    :global(.notif-text) {
+      font-size: 0.65rem;
+    }
+  }
+</style>

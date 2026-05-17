@@ -1,0 +1,7 @@
+"indexes": [
+  {
+    "name": "unique_user_photo_type",
+    "columns": ["user", "photo", "type"],
+    "type": "unique"
+  }
+]

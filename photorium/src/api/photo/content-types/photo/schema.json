@@ -1,0 +1,100 @@
+{
+  "kind": "collectionType",
+  "collectionName": "photos",
+  "info": {
+    "singularName": "photo",
+    "pluralName": "photos",
+    "displayName": "Photo",
+    "description": "Photo with metadata, tags, category, and social interactions"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {
+    "i18n": {
+      "localized": false
+    }
+  },
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true,
+      "minLength": 3,
+      "maxLength": 120
+    },
+    "description": {
+      "type": "text",
+      "required": true,
+      "maxLength": 2000
+    },
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": ["images"]
+    },
+    "author": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "photos",
+      "required": true
+    },
+    "categories": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::category.category",
+      "mappedBy": "photos"
+    },
+    "tags": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::tag.tag",
+      "inversedBy": "photos"
+    },
+    "comments": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::comment.comment",
+      "mappedBy": "photo"
+    },
+    "reactions": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::reaction.reaction",
+      "mappedBy": "photo"
+    },
+    "og_title": {
+      "type": "string",
+      "maxLength": 60
+    },
+    "og_description": {
+      "type": "text",
+      "maxLength": 160
+    },
+    "ik_file_id": {
+      "type": "string"
+    },
+    "ik_url": {
+      "type": "string"
+    },
+    "ik_thumbnail_url": {
+      "type": "string"
+    },
+    "views": {
+      "type": "integer",
+      "default": 0,
+      "min": 0
+    },
+    "classic_munch_count": {
+      "type": "integer",
+      "default": 0,
+      "min": 0
+    },
+    "cheddar_munch_count": {
+      "type": "integer",
+      "default": 0,
+      "min": 0
+    }
+  }
+}

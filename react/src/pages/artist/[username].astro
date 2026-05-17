@@ -1,0 +1,337 @@
+---
+import ClientLayout from '../../layouts/ClientLayout.astro';
+import type { StrapiPhoto, StrapiUser } from '../../types/strapi';
+
+const { username } = Astro.params;
+const { user: currentUser } = Astro.locals;
+
+// Use 127.0.0.1 for local dev to avoid IPv6 localhost issues in some environments
+const strapiUrl = import.meta.env.STRAPI_URL || 'http://127.0.0.1:1337';
+
+// 1. Fetch the user profile by username
+// NOTE: Strapi 5 Users endpoint supports filters[username]=value and populate=*
+// Using encodeURIComponent to handle any special characters in usernames
+const userRes = await fetch(`${strapiUrl}/api/users?filters[username]=${encodeURIComponent(username || '')}&populate=*`);
+const userJson = await userRes.json();
+
+if (!userRes.ok || !Array.isArray(userJson) || userJson.length === 0) {
+  console.error(`Artist profile fetch failed for ${username}:`, userRes.status);
+  return Astro.redirect('/404');
+}
+
+const artist: StrapiUser = userJson[0];
+const followersCount = artist.followers?.length || 0;
+const followingCount = artist.following?.length || 0;
+const isFollowing = currentUser ? artist.followers?.some(u => u.documentId === currentUser.documentId) : false;
+const isSelf = currentUser?.documentId === artist.documentId;
+
+// 2. Fetch the user's photos
+const photosRes = await fetch(`${strapiUrl}/api/photos?filters[author][id][$eq]=${artist.id}&populate=image`);
+const photosJson = await photosRes.json();
+const photos: StrapiPhoto[] = photosJson.data || [];
+
+const resolveImageUrl = (url: string | undefined | null) => {
+  if (!url) return '/favicon.png';
+  return url.startsWith('http') ? url : `${strapiUrl}${url}`;
+};
+---
+
+<ClientLayout 
+  title={`${artist.username}'s Stash | Photorium`}
+  description={artist.bio || `Check out the creative stash of ${artist.nickname || artist.username} on Photorium. View their bio, stats, and art.`}
+  image={artist.avatar?.url || artist.avatar?.data?.attributes?.url}
+>
+  <div class="artist-profile-container">
+    <header class="artist-header">
+      <div class="avatar-ring">
+        <img src={resolveImageUrl(artist.avatar?.url || artist.avatar?.data?.attributes?.url)} alt={artist.username} />
+      </div>
+      <h1>{artist.nickname || artist.username}</h1>
+      <p class="username-handle">@{artist.username}</p>
+      
+      <div class="bio-container">
+        <p>{artist.bio || "This artist hasn't written their lore yet."}</p>
+      </div>
+
+      <div class="stats-mini">
+        <div class="stat-item">
+          <span class="value">{photos.length}</span>
+          <span class="label">Photos</span>
+        </div>
+        <div class="stat-item">
+          <span class="value">{followersCount}</span>
+          <span class="label">Followers</span>
+        </div>
+        <div class="stat-item">
+          <span class="value">{followingCount}</span>
+          <span class="label">Following</span>
+        </div>
+      </div>
+
+      {currentUser && !isSelf && (
+        <div class="social-actions" style="margin-top: 2rem;">
+          <button 
+            id="follow-btn" 
+            class={isFollowing ? "unfollow-btn" : "follow-btn"}
+            data-target-id={artist.documentId}
+            data-is-following={isFollowing ? "true" : "false"}
+          >
+            {isFollowing ? "Unfollow" : "Follow"}
+          </button>
+        </div>
+      )}
+    </header>
+
+    <main class="artist-stash">
+      <h2 class="stash-title">The Stash</h2>
+      
+      <div class="photo-grid">
+        {photos.length > 0 ? (
+          photos.map((photo) => (
+            <div class="photo-item">
+              <a href={`/photo/${photo.documentId}`}>
+                <img src={resolveImageUrl(photo.ik_url || photo.image?.url || photo.image?.data?.attributes?.url)} alt={photo.title} loading="lazy" />
+              </a>
+              <div class="photo-info">
+                <a href={`/photo/${photo.documentId}`} style="text-decoration: none; color: inherit;">
+                  <h3>{photo.title}</h3>
+                </a>
+                <div class="counts">
+                   <span>🍟 {photo.classic_munch_count || 0}</span>
+                   <span>🧀 {photo.cheddar_munch_count || 0}</span>
+                </div>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div class="empty-state">
+            <p>This artist's stash is currently empty.</p>
+          </div>
+        )}
+      </div>
+    </main>
+  </div>
+</ClientLayout>
+
+<style>
+  .artist-profile-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 4rem 2rem;
+  }
+
+  .artist-header {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto 5rem;
+  }
+
+  .avatar-ring {
+    width: 150px;
+    height: 150px;
+    margin: 0 auto 1.5rem;
+    padding: 6px;
+    background: linear-gradient(45deg, #ffc107, #ff9800);
+    border-radius: 50%;
+    box-shadow: 0 10px 20px rgba(255, 193, 7, 0.2);
+  }
+
+  .avatar-ring img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #fff;
+  }
+
+  .artist-header h1 {
+    font-size: 2.5rem;
+    color: #3d2b1f;
+    margin: 0 0 0.5rem;
+    font-weight: 900;
+  }
+
+  .username-handle {
+    color: #ff9800;
+    font-weight: 700;
+    margin: 0 0 2rem;
+    font-size: 1.1rem;
+  }
+
+  .bio-container {
+    background: #fff;
+    padding: 2rem;
+    border-radius: 1.5rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    margin-bottom: 2rem;
+  }
+
+  .bio-container p {
+    color: #555;
+    line-height: 1.6;
+    margin: 0;
+    font-size: 1.1rem;
+  }
+
+  .stats-mini {
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid #e0e0e0;
+  }
+
+  .stat-item {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .stat-item .value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #3d2b1f;
+  }
+
+  .stat-item .label {
+    font-size: 0.9rem;
+    color: #8b7355;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+  }
+
+  .artist-stash {
+    margin-top: 4rem;
+  }
+
+  .stash-title {
+    font-size: 2rem;
+    color: #3d2b1f;
+    margin-bottom: 2rem;
+    font-weight: 800;
+    border-bottom: 3px solid #ffc107;
+    padding-bottom: 0.5rem;
+    display: inline-block;
+  }
+
+  .photo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+  }
+
+  .photo-item {
+    background: #fff;
+    border-radius: 1.5rem;
+    overflow: hidden;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.03);
+    border: 1px solid #eee;
+    transition: transform 0.3s ease;
+  }
+
+  .photo-item:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.08);
+  }
+
+  .photo-item img {
+    width: 100%;
+    aspect-ratio: 4/5;
+    object-fit: cover;
+    display: block;
+  }
+
+  .photo-info {
+    padding: 1.5rem;
+  }
+
+  .photo-info h3 {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+    color: #3d2b1f;
+  }
+
+  .counts {
+    display: flex;
+    gap: 1rem;
+    font-size: 1rem;
+    color: #555;
+  }
+
+  .empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 4rem;
+  background: #fff;
+  border-radius: 1.5rem;
+  color: #8b7355;
+  font-size: 1.2rem;
+  }
+
+  .follow-btn, .unfollow-btn {
+  padding: 0.8rem 2.5rem;
+  border-radius: 1rem;
+  font-weight: 700;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  }
+
+  .follow-btn {
+  background: #3d2b1f;
+  color: #fff;
+  }
+
+  .follow-btn:hover {
+  background: #ffc107;
+  color: #3d2b1f;
+  }
+
+  .unfollow-btn {
+  background: #f5f5f5;
+  color: #666;
+  border: 1px solid #ddd;
+  }
+
+  .unfollow-btn:hover {
+  background: #ffebee;
+  color: #d32f2f;
+  border-color: #ffcdd2;
+  }
+  </style>
+
+  <script>
+  import toast from 'react-hot-toast';
+
+  const followBtn = document.getElementById('follow-btn') as HTMLButtonElement;
+
+  followBtn?.addEventListener('click', async () => {
+  const targetId = followBtn.dataset.targetId;
+  const isFollowing = followBtn.dataset.isFollowing === 'true';
+
+  followBtn.setAttribute('disabled', 'true');
+  const toastId = toast.loading(isFollowing ? 'Unfollowing...' : 'Following...');
+
+  try {
+    const res = await fetch('/api/toggle-follow', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ targetUserDocumentId: targetId })
+    });
+
+    if (res.ok) {
+      toast.success(isFollowing ? 'Unfollowed' : 'Following!', { id: toastId });
+      setTimeout(() => window.location.reload(), 1000);
+    } else {
+      const err = await res.json();
+      throw new Error(err.error || 'Failed to update follow status');
+    }
+  } catch (err: any) {
+    toast.error(err.message, { id: toastId });
+  } finally {
+    followBtn.removeAttribute('disabled');
+  }
+  });
+  </script>
+
