@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "cyrus-setup-github": {
+      "source": "ceedaragents/cyrus",
+      "sourceType": "github",
+      "skillPath": "skills/cyrus-setup-github/SKILL.md",
+      "computedHash": "fe8082ec5ab97dbec9b27439c5fa0b7f09db8be51479996124ae3838da047ab6"
+    }
+  }
+}
