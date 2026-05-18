@@ -73,70 +73,81 @@ const formattedDate = new Date(photo.createdAt || Date.now()).toLocaleDateString
       <img src={imageUrl} alt={photo.title} class="main-image" />
     </div>
     
-    <div class="photo-metadata">
-      <div class="metadata-header">
-        <div class="title-section">
-          <h1>{photo.title}</h1>
-          <p class="author">By <a href={`/artist/${photo.author?.username}`} class="author-link"><strong>{photo.author?.username || 'Anonymous'}</strong></a></p>
-        </div>
-        <div class="munch-stats">
-          <div class="munch-badge classic" title="Classic Munches">
-            🍟 <span>{photo.classic_munch_count || 0}</span>
+    <div class="photo-content-column">
+      <div class="photo-metadata">
+        <div class="metadata-header">
+          <div class="title-section">
+            <h1>{photo.title}</h1>
+            <p class="author">By <a href={`/artist/${photo.author?.username}`} class="author-link"><strong>{photo.author?.username || 'Anonymous'}</strong></a></p>
           </div>
-          <div class="munch-badge cheddar" title="Cheddar Munches">
-            🧀 <span>{photo.cheddar_munch_count || 0}</span>
-          </div>
-        </div>
-      </div>
-      
-      <div class="description-section">
-        <h3>The Story</h3>
-        <p>{photo.description || 'No description provided.'}</p>
-        
-        <SocialShare 
-          url={currentUrl} 
-          title={photo.title} 
-          description={photo.description} 
-          image={imageUrl} 
-        />
-      </div>
-      
-      <div class="details-section">
-        <div class="detail-item">
-          <span class="label">Fried on</span>
-          <span class="value">{formattedDate}</span>
-        </div>
-        {photo.categories && photo.categories.length > 0 && (
-          <div class="detail-item">
-            <span class="label">Flavors</span>
-            <div class="flavor-tags-list">
-              {photo.categories.map(cat => (
-                <span class="value flavor-tag">{cat.name || cat.slug || 'Unknown'}</span>
-              ))}
+          <div class="munch-stats">
+            <div class="munch-badge classic" title="Classic Munches">
+              🍟 <span>{photo.classic_munch_count || 0}</span>
+            </div>
+            <div class="munch-badge cheddar" title="Cheddar Munches">
+              🧀 <span>{photo.cheddar_munch_count || 0}</span>
             </div>
           </div>
-        )}
+        </div>
+        
+        <div class="description-section">
+          <h3>The Story</h3>
+          <p>{photo.description || 'No description provided.'}</p>
+          
+          <SocialShare 
+            url={currentUrl} 
+            title={photo.title} 
+            description={photo.description} 
+            image={imageUrl} 
+          />
+        </div>
+        
+        <div class="details-section">
+          <div class="detail-item">
+            <span class="label">Fried on</span>
+            <span class="value">{formattedDate}</span>
+          </div>
+          {photo.categories && photo.categories.length > 0 && (
+            <div class="detail-item">
+              <span class="label">Flavors</span>
+              <div class="flavor-tags-list">
+                {photo.categories.map(cat => (
+                  <span class="value flavor-tag">{cat.name || cat.slug || 'Unknown'}</span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div class="comments-layout-wrapper">
+        <CommentSection 
+          client:load 
+          photoId={photo.documentId} 
+          initialComments={comments} 
+          user={user} 
+        />
       </div>
     </div>
-
-    <CommentSection 
-      client:load 
-      photoId={photo.id} 
-      initialComments={comments} 
-      user={user} 
-    />
   </div>
 </ClientLayout>
 
 <style>
   .photo-detail-container {
+    width: 100%;
     max-width: 1200px;
     margin: 0 auto;
     padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-sizing: border-box; /* Crucial for preventing overflow */
+    overflow-x: hidden; /* Safety measure */
   }
 
   .photo-hero {
     width: 100%;
+    max-width: 100%; /* Ensure it never exceeds parent */
     max-height: 80vh;
     display: flex;
     justify-content: center;
@@ -152,16 +163,85 @@ const formattedDate = new Date(photo.createdAt || Date.now()).toLocaleDateString
     max-width: 100%;
     max-height: 80vh;
     object-fit: contain;
+    display: block;
+  }
+
+  .photo-content-column {
+    width: 100%;
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
   }
 
   .photo-metadata {
-    max-width: 800px;
-    margin: 0 auto;
+    width: 100%;
     background: #fff;
     padding: 3rem;
     border-radius: 1.5rem;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+    border: 1px solid #dee2e6;
+    box-sizing: border-box;
   }
+
+  .comments-layout-wrapper {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Mobile Optimizations */
+  @media (max-width: 768px) {
+    .photo-detail-container {
+      padding: 1rem; /* Reduce padding on mobile */
+    }
+
+    .photo-hero {
+      border-radius: 1rem;
+      margin-bottom: 1.5rem;
+      max-height: 60vh;
+    }
+
+    .photo-metadata {
+      padding: 1.5rem; /* Less padding inside the card */
+      border-radius: 1rem;
+    }
+
+    .metadata-header {
+      flex-direction: column;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+
+    .title-section h1 {
+      font-size: 1.75rem;
+    }
+
+    .munch-stats {
+      width: 100%;
+      justify-content: flex-start;
+    }
+
+    .details-section {
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+  }
+
+  /* Extra Small Devices */
+  @media (max-width: 480px) {
+    .photo-detail-container {
+      padding: 0.75rem;
+    }
+
+    .title-section h1 {
+      font-size: 1.5rem;
+    }
+
+    .photo-metadata {
+      padding: 1.25rem;
+    }
+  }
+
 
   .metadata-header {
     display: flex;

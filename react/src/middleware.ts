@@ -6,9 +6,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   if (jwt) {
     try {
-      // Fetch user info from Strapi using the JWT
-      // This ensures the token is valid and gives us the user profile
-      const response = await fetch(`${strapiUrl}/api/users/me`, {
+      // Fetch user info from Strapi with role populated
+      const response = await fetch(`${strapiUrl}/api/users/me?populate=role`, {
         headers: {
           Authorization: `Bearer ${jwt}`,
         },

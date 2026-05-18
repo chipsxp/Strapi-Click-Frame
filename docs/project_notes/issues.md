@@ -1,3 +1,18 @@
+---
+
+### 2026-05-18 - Comment System Implementation
+
+- **Status**: Completed
+- **Description**: Implemented a visual comment section with 1-level threading, sound effects, and moderation tools.
+- **Key Contributions**:
+    - **Backend**: Created the `comment` API with a custom lifecycle hook that enforces a maximum depth of 2 (1 comment + 1 reply) and a maximum of 1 reply per comment.
+    - **Astro API**: Created `/api/comment` (POST) and `/api/comment/[id]` (DELETE) routes.
+    - **Frontend**: Built `CommentSection.tsx` (React) with optimistic updates, "Crunch" sound effect integration, and a moderation "Delete" button for Editors.
+    - **Moderation**: Established "Editor" role permissions on bootstrap, allowing administrators to moderate ill-tempered comments directly from the UI.
+- **Notes**: See `bugs.md` for details on the Strapi 5 Document ID and connection syntax fixes required for this implementation.
+
+---
+
 ### 2026-05-17 - Strapi 5.46 Migration & Population Error Fix
 
 - **Status**: Completed

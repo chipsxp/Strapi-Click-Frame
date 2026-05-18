@@ -114,6 +114,30 @@ Track bugs chronologically. Keep entries brief. Remove entries older than 6 mont
 
 ---
 
+### 2026-05-17 - Strapi 5 Relation Error (Internal Server Error on Comment POST)
+- **Issue**: Posting a comment or reply returned a 500 Internal Server Error from the API.
+- **Root Cause**: Strapi 5's REST API and Document Service have transitioned to using **Document IDs** (strings like `abc123...`) for all relational assignments. The frontend was mistakenly sending numeric `id` values for the `photo`, `author`, and `parent` relations. Furthermore, the `data` payload for relations often requires an explicit `connect` or `disconnect` object in recent Strapi 5 versions (e.g., `{ photo: { connect: ["doc-id"] } }`).
+- **Solution**: Updated the `/api/comment` route and `CommentSection.tsx` to pass `documentId` instead of `id`. Refactored the payload to use the `connect` syntax: `photo: { connect: [photoId] }`. 
+- **Prevention**: In Strapi 5, always use `documentId` for linking relations via REST. For critical relations, wrap the ID in an object using the `connect` key to ensure compatibility with Strapi's relation manager.
+
+---
+
+### 2026-05-17 - Comment Section Alignment & Overflow
+- **Issue**: The comment section container was slightly wider than the photo metadata card, and textareas would overflow the container on small screens.
+- **Root Cause**: (1) The metadata card and comment section had different `box-shadow` and `border` values, causing a visual "jagged" edge. (2) The CSS reset was missing a global `box-sizing: border-box` rule, so padding was being added to the `100%` width of the textareas, pushing them out of bounds.
+- **Solution**: (1) Standardized both containers to share `box-shadow: 0 12px 40px rgba(0,0,0,0.1)` and `border: 1px solid #dee2e6`. (2) Added a universal `box-sizing: border-box` reset in `ClientLayout.astro` and explicitly applied it to all elements within `CommentSection.module.css`.
+- **Prevention**: Always apply `box-sizing: border-box` at the root level of a project. When creating vertical "content columns," ensure all tiered containers share identical width, padding, and border/shadow properties.
+
+---
+
+### 2026-05-17 - Comment Avatar '?' Symbol on Submission
+- **Issue**: Newly submitted comments showed a `?` instead of the user's initial until the page was refreshed.
+- **Root Cause**: The API response for a successful comment creation included the user's `id` but not the full `author` object (username/nickname). The React component, using optimistic updates, couldn't find a `username` to extract an initial from.
+- **Solution**: Implemented two layers of fixes: (1) The React component now manually injects the current local `user` session object into the new comment object if the API response is missing it. (2) Added an automated `window.location.reload()` 500ms after submission to ensure the final UI is perfectly synced with Strapi's fully populated data.
+- **Prevention**: When using optimistic updates with relational data (like authors), always have a fallback that merges the local session user data into the newly created object before rendering.
+
+---
+
 ### 2026-05-12 - `Astro.locals` Properties Missing (TypeScript Global Scope Issue)
 - **Root Cause**: A top-level `import type { StrapiUser } from "./types/strapi"` statement was added to `react/src/env.d.ts`. In TypeScript, any file with a top-level `import` or `export` is treated as a module rather than a global script. This caused the ambient `declare namespace App` block to be treated as a local declaration rather than an extension of the global Astro `App` namespace, making `Astro.locals` revert to its empty default state.
 - **Solution**: Refactored `react/src/env.d.ts` to use inline dynamic imports: `user: import("./types/strapi").StrapiUser | null;`. This maintains the file's status as a global script.

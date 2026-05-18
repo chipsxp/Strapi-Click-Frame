@@ -98,7 +98,10 @@ export default {
           'api::category.category.delete',
           'api::category.category.find',
           'api::category.category.findOne',
-          'api::category.category.merge'
+          'api::category.category.merge',
+          'api::comment.comment.create',
+          'api::comment.comment.find',
+          'api::comment.comment.findOne'
         ];
 
         for (const action of authActions) {
@@ -151,7 +154,11 @@ export default {
           'api::category.category.delete',
           'api::category.category.find',
           'api::category.category.findOne',
-          'api::category.category.merge'
+          'api::category.category.merge',
+          'api::comment.comment.create',
+          'api::comment.comment.find',
+          'api::comment.comment.findOne',
+          'api::comment.comment.delete'
         ];
 
         for (const action of editorActions) {

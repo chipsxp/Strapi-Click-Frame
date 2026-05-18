@@ -1,0 +1,42 @@
+graph TB
+    subgraph "Frontend (Astro SSR)"
+        AboutPage[About Page - /about]
+        StatsBoard[Community Stats Board - Left Column]
+        UserPanel[User Stats Panel - Right Floating Card]
+        PayPalBtn[PayPal Donation Button]
+    end
+
+    subgraph "Backend (Strapi 5)"
+        StatsAPI[Custom Stats API Controller]
+        DonationAPI[Donation Tracking API]
+        ReactionSvc[Reaction Service]
+        DocSvc[Document Service]
+    end
+
+    subgraph "Database (SQLite)"
+        Reactions[(Reactions Table)]
+        Photos[(Photos Table)]
+        Users[(Users Table)]
+        Donations[(Donations Table)]
+    end
+
+    AboutPage --> StatsBoard
+    AboutPage --> UserPanel
+    StatsBoard --> StatsAPI
+    UserPanel --> StatsAPI
+    PayPalBtn --> DonationAPI
+    DonationAPI --> Donations
+    StatsAPI --> DocSvc
+    DocSvc --> Reactions
+    DocSvc --> Photos
+    DocSvc --> Users
+    DocSvc --> Donations
+
+    %% Styling
+    classDef primary fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+    classDef secondary fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+    classDef database fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
+    
+    class AboutPage,StatsBoard,UserPanel,PayPalBtn primary
+    class StatsAPI,DonationAPI,ReactionSvc secondary
+    class Reactions,Photos,Users,Donations database

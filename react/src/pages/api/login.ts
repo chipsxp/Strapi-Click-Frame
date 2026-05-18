@@ -27,8 +27,9 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
     const strapiUrl = import.meta.env.STRAPI_URL || 'http://localhost:1337';
     console.log('Attempting login to Strapi at:', `${strapiUrl}/api/auth/local`);
-    
+
     const response = await fetch(`${strapiUrl}/api/auth/local`, {
+
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -20,6 +20,19 @@ export interface StrapiPhoto {
   categories?: StrapiCategory[];
   createdAt: string;
   updatedAt: string;
+  comments?: StrapiComment[];
+}
+
+export interface StrapiComment {
+  id: number;
+  documentId: string;
+  content: string;
+  author: StrapiUser;
+  photo: StrapiPhoto | number;
+  parent?: StrapiComment;
+  reply?: StrapiComment;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface StrapiUser {

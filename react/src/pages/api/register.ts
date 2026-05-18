@@ -3,7 +3,6 @@ import type { APIRoute } from 'astro';
 export const POST: APIRoute = async ({ request }) => {
   try {
     const body = await request.json();
-    console.log('API Register received body:', body);
     const { username, email, password } = body;
 
     if (!username || !email || !password) {

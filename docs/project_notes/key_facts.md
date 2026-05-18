@@ -42,6 +42,8 @@ Non-sensitive project configuration and constants. **Never store passwords, API 
 | `profile-config` | **Single type** | `/api/profile-config` | Header visuals and global stats |
 | `category` | Collection | `/api/categories` | Plural: `categories` |
 | `category` (Merge) | Custom | `/api/categories/:documentId/merge` | Batch move photos & delete source |
+| `comment` | Collection | `/api/comments` | 1-level threading; max 1 reply per comment |
+| `comment` (Moderation) | Custom (Astro) | `/api/comment/[id]` (DELETE) | Moderator/Editor only deletion |
 | `follow` | Custom (Astro) | `/api/toggle-follow` | Toggle user follow relationship |
 | `about` | **Single type** | `/api/about` | Singular loader |
 | `global` | **Single type** | `/api/global` | Singular loader |
