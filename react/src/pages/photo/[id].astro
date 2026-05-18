@@ -1,12 +1,27 @@
 ---
 import ClientLayout from '../../layouts/ClientLayout.astro';
 import SocialShare from '../../components/SocialShare.astro';
+import CommentSection from '../../components/CommentSection';
 import type { StrapiPhoto } from '../../types/strapi';
 
 const { id } = Astro.params;
+const { user } = Astro.locals;
 
 const strapiUrl = import.meta.env.STRAPI_URL || 'http://localhost:1337';
-const response = await fetch(`${strapiUrl}/api/photos/${id}?populate=*`);
+
+// Strapi 5 requires indexed query parameters for complex population via REST
+// Do not mix '*' with nested populate paths
+const params = new URLSearchParams();
+params.append('populate[0]', 'image');
+params.append('populate[1]', 'author');
+params.append('populate[2]', 'categories');
+params.append('populate[3]', 'tags');
+params.append('populate[4]', 'comments');
+params.append('populate[5]', 'comments.author');
+params.append('populate[6]', 'comments.reply');
+params.append('populate[7]', 'comments.reply.author');
+
+const response = await fetch(`${strapiUrl}/api/photos/${id}?${params.toString()}`);
 
 if (!response.ok) {
   return Astro.redirect('/404');
@@ -18,6 +33,11 @@ const photo: StrapiPhoto = json.data;
 if (!photo) {
   return Astro.redirect('/404');
 }
+
+// Sort comments by creation date (newest first)
+const comments = (photo.comments || []).sort((a, b) => 
+  new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+);
 
 const getImageUrl = (photo: StrapiPhoto) => {
   if (photo.ik_url) return photo.ik_url;
@@ -98,6 +118,13 @@ const formattedDate = new Date(photo.createdAt || Date.now()).toLocaleDateString
         )}
       </div>
     </div>
+
+    <CommentSection 
+      client:load 
+      photoId={photo.id} 
+      initialComments={comments} 
+      user={user} 
+    />
   </div>
 </ClientLayout>
 
