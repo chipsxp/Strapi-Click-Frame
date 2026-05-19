@@ -715,6 +715,12 @@ const resolveImageUrl = (url: string | undefined | null) => {
 
   // --- Notification Feed Logic ---
   let notifications: any[] = [];
+  let dismissedIds: string[] = [];
+  try {
+    const stored = localStorage.getItem("dismissed_sizzles");
+    if (stored) dismissedIds = JSON.parse(stored);
+  } catch(e) {}
+
   const MAX_NOTIFICATIONS = 6;
   const POLLING_INTERVAL = 120000; // 2 minutes
 
@@ -761,6 +767,14 @@ const resolveImageUrl = (url: string | undefined | null) => {
       btn.addEventListener("click", (e) => {
         const item = (e.currentTarget as HTMLElement).closest(".notification-item") as HTMLElement;
         const id = item.dataset.id;
+        if (id) {
+          dismissedIds.push(id);
+          try {
+            // Keep localStorage from growing too large
+            if (dismissedIds.length > 50) dismissedIds = dismissedIds.slice(-50);
+            localStorage.setItem("dismissed_sizzles", JSON.stringify(dismissedIds));
+          } catch(e) {}
+        }
         notifications = notifications.filter(n => n.documentId !== id);
         renderNotifications();
       });
@@ -787,9 +801,9 @@ const resolveImageUrl = (url: string | undefined | null) => {
         createdAt: photo.createdAt
       }));
 
-      // Merge and unique by documentId, keeping newest
+      // Merge and unique by documentId, keeping newest, and filter out dismissed
       const seenIds = new Set(notifications.map(n => n.documentId));
-      const freshItems = newItems.filter((n: any) => !seenIds.has(n.documentId));
+      const freshItems = newItems.filter((n: any) => !seenIds.has(n.documentId) && !dismissedIds.includes(n.documentId));
 
       if (freshItems.length > 0) {
         notifications = [...freshItems, ...notifications].slice(0, MAX_NOTIFICATIONS);
@@ -890,7 +904,7 @@ const resolveImageUrl = (url: string | undefined | null) => {
 
   .photo-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 2rem;
   }
 
@@ -909,8 +923,9 @@ const resolveImageUrl = (url: string | undefined | null) => {
 
   .photo-item img {
     width: 100%;
-    aspect-ratio: 4/5;
-    object-fit: cover;
+    aspect-ratio: 4/3;
+    object-fit: contain;
+    background-color: #f0f0f0;
   }
 
   .photo-info {

@@ -42,15 +42,29 @@ export default {
       });
 
       if (publicRole) {
-        const controllers = ['photo', 'category', 'tag', 'reaction', 'comment', 'global', 'about'];
+        const controllers = ['photo', 'category', 'tag', 'reaction', 'comment', 'global', 'about', 'donation', 'community-stat'];
         const publicPermissionsToCreate = [];
 
         for (const controller of controllers) {
           const actions = ['find', 'findOne'];
+          if (controller === 'donation') {
+            actions.push('create');
+          }
+          if (controller === 'community-stat') {
+            actions.push('getStats');
+          }
+          if (controller === 'photo') {
+            actions.push('incrementView');
+          }
           for (const action of actions) {
+            let controllerName = controller;
+            if (controller === 'photo' && action === 'incrementView') {
+              controllerName = 'custom-photo';
+            }
+            
             const permission = await ensurePermission(
               publicRole.id,
-              `api::${controller}.${controller}.${action}`
+              `api::${controller}.${controllerName}.${action}`
             );
             if (permission) {
               publicPermissionsToCreate.push(permission);
@@ -101,7 +115,9 @@ export default {
           'api::category.category.merge',
           'api::comment.comment.create',
           'api::comment.comment.find',
-          'api::comment.comment.findOne'
+          'api::comment.comment.findOne',
+          'api::donation.donation.create',
+          'api::community-stat.community-stat.getStats'
         ];
 
         for (const action of authActions) {
@@ -158,7 +174,8 @@ export default {
           'api::comment.comment.create',
           'api::comment.comment.find',
           'api::comment.comment.findOne',
-          'api::comment.comment.delete'
+          'api::comment.comment.delete',
+          'api::community-stat.community-stat.getStats'
         ];
 
         for (const action of editorActions) {

@@ -1,0 +1,36 @@
+{
+  "kind": "collectionType",
+  "collectionName": "donations",
+  "info": {
+    "singularName": "donation",
+    "pluralName": "donations",
+    "displayName": "Donation",
+    "description": "Donations from the community"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "amount": {
+      "type": "decimal",
+      "required": true
+    },
+    "isAnonymous": {
+      "type": "boolean",
+      "default": false
+    },
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "donations"
+    },
+    "nickname": {
+      "type": "string"
+    },
+    "month": {
+      "type": "string",
+      "required": true
+    }
+  }
+}

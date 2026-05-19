@@ -1,0 +1,156 @@
+.login-card {
+  background: var(--card-bg, #ffffff);
+  padding: 3rem;
+  border-radius: 2rem;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 450px;
+  border: 2px solid #f0f0f0;
+  transition: transform 0.3s ease;
+}
+
+.brand {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.brand h1 {
+  font-size: 2.5rem;
+  color: #3d2b1f;
+  margin-bottom: 0.5rem;
+  font-weight: 800;
+}
+
+.brand p {
+  color: #8b7355;
+  font-size: 1rem;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.field label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #5d4037;
+  margin-left: 0.5rem;
+}
+
+.field input {
+  padding: 1rem 1.25rem;
+  border-radius: 1rem;
+  border: 2px solid #e0e0e0;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  background: #fafafa;
+  width: 100%;
+}
+
+.field input:focus {
+  outline: none;
+  border-color: #ffc107;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.1);
+}
+
+.submit-btn {
+  position: relative;
+  padding: 1.25rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  overflow: hidden;
+  border-radius: 1rem;
+  margin-top: 1rem;
+}
+
+.btn-text {
+  position: relative;
+  z-index: 1;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.btn-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #3d2b1f;
+  transition: transform 0.3s ease;
+}
+
+.submit-btn:hover .btn-bg {
+  background: #ffc107;
+}
+
+.submit-btn:hover .btn-text {
+  color: #3d2b1f;
+}
+
+.submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.footer {
+  margin-top: 2rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #8b7355;
+}
+
+.footer a {
+  color: #ffc107;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.footer a:hover {
+  text-decoration: underline;
+}
+
+:global([data-theme="dark"]) .login-card {
+  border-color: #333;
+}
+
+:global([data-theme="dark"]) .brand h1 {
+  color: #f5f5f5;
+}
+
+:global([data-theme="dark"]) .field label {
+  color: #b3a18b;
+}
+
+:global([data-theme="dark"]) .field input {
+  background: #2a2a2a;
+  border-color: #444;
+  color: #f5f5f5;
+}
+
+:global([data-theme="dark"]) .field input:focus {
+  border-color: #ffc107;
+}
+
+:global([data-theme="dark"]) .btn-bg {
+  background: #ffc107;
+}
+
+:global([data-theme="dark"]) .btn-text {
+  color: #1a1a1a;
+}
+
+:global([data-theme="dark"]) .submit-btn:hover .btn-bg {
+  background: #ff9800;
+}

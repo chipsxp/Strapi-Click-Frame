@@ -1,42 +1,58 @@
 graph TB
     subgraph "Frontend (Astro SSR)"
-        AboutPage[About Page - /about]
-        StatsBoard[Community Stats Board - Left Column]
-        UserPanel[User Stats Panel - Right Floating Card]
-        PayPalBtn[PayPal Donation Button]
+        AboutPage[📝 Hash Brown Hub - /hash-brown-hub]
+        StatsBoard[📊 Community Stats Board - Left Column]
+        UserPanel[👤 User Stats Panel - Right Floating Card]
+        PayPalBtn[💳 PayPal Donation Button]
+        PhotoViews[🖼️ Photo Feed / Details]
     end
 
     subgraph "Backend (Strapi 5)"
-        StatsAPI[Custom Stats API Controller]
-        DonationAPI[Donation Tracking API]
-        ReactionSvc[Reaction Service]
-        DocSvc[Document Service]
+        StatsAPI[📡 Custom Stats API Controller]
+        ReactionAPI[📡 Reaction API Controller]
+        DonationAPI[📡 Donation Tracking API]
+        AnalyticsAPI[📡 Analytics/Click API]
+        ReactionSvc[⚙️ Reaction Service - Chip/Cheddar Economy]
+        DocSvc[📦 Document Service]
     end
 
     subgraph "Database (SQLite)"
-        Reactions[(Reactions Table)]
-        Photos[(Photos Table)]
-        Users[(Users Table)]
-        Donations[(Donations Table)]
+        Reactions[(⚡ Reactions Table)]
+        Photos[(📸 Photos Table)]
+        Users[(👥 Users Table)]
+        Donations[(💰 Donations Table)]
     end
 
+    %% Frontend interactions
     AboutPage --> StatsBoard
     AboutPage --> UserPanel
     StatsBoard --> StatsAPI
     UserPanel --> StatsAPI
     PayPalBtn --> DonationAPI
-    DonationAPI --> Donations
-    StatsAPI --> DocSvc
+    PhotoViews -->|Gives Chips/Cheddar| ReactionAPI
+    PhotoViews -->|Tracks Details Clicks| AnalyticsAPI
+
+    %% Backend routing and aggregation
+    ReactionAPI -->|Processes 5:1 Cheddar Logic| ReactionSvc
+    StatsAPI -->|Aggregates Economy Stats| ReactionSvc
+    StatsAPI -->|Aggregates Donations & Totals| DocSvc
+    DonationAPI -->|Records Anonymous/Named| DocSvc
+    AnalyticsAPI -->|Increments Clicks| DocSvc
+
+    %% Service to DB interactions
+    ReactionSvc -->|Reads/Writes| DocSvc
     DocSvc --> Reactions
     DocSvc --> Photos
     DocSvc --> Users
     DocSvc --> Donations
 
-    %% Styling
+    %% Styling with high contrast and colors
     classDef primary fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
     classDef secondary fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
     classDef database fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
+    classDef highlight fill:#FFD700,stroke:#333,stroke-width:2px,color:black
     
-    class AboutPage,StatsBoard,UserPanel,PayPalBtn primary
-    class StatsAPI,DonationAPI,ReactionSvc secondary
+    class AboutPage,StatsBoard,UserPanel,PayPalBtn,PhotoViews primary
+    class StatsAPI,DonationAPI,ReactionAPI,AnalyticsAPI secondary
+    class ReactionSvc highlight
     class Reactions,Photos,Users,Donations database

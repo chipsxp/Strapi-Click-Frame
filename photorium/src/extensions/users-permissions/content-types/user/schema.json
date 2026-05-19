@@ -21,7 +21,8 @@
       "type": "email",
       "minLength": 3,
       "configurable": false,
-      "required": true
+      "required": true,
+      "unique": true
     },
     "password": {
       "type": "password",
@@ -71,7 +72,8 @@
     },
     "nickname": {
       "type": "string",
-      "maxLength": 50
+      "maxLength": 50,
+      "unique": true
     },
     "real_name": {
       "type": "string",
@@ -143,6 +145,12 @@
       "relation": "manyToMany",
       "target": "plugin::users-permissions.user",
       "mappedBy": "following"
+    },
+    "donations": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::donation.donation",
+      "mappedBy": "user"
     }
   }
 }

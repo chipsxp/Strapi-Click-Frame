@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { StrapiComment, StrapiUser } from '../types/strapi';
+import Modal from './Modal';
 import styles from './CommentSection.module.css';
 
 interface Props {
@@ -15,6 +16,12 @@ export default function CommentSection({ photoId, initialComments, user }: Props
   const [replyContent, setReplyContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Modal state
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [commentToDelete, setCommentToDelete] = useState<{id: number, docId: string} | null>(null);
 
   const isModerator = user?.role?.type === 'editor' || user?.role?.type === 'admin';
 
@@ -78,11 +85,9 @@ export default function CommentSection({ photoId, initialComments, user }: Props
     }
   };
 
-  const handleDelete = async (commentId: number) => {
-    if (!confirm('Are you sure you want to delete this comment?')) return;
-
+  const handleDelete = async (commentId: number, documentId: string) => {
     try {
-      const res = await fetch(`/api/comment/${commentId}`, {
+      const res = await fetch(`/api/comment/${documentId}`, {
         method: 'DELETE',
       });
 
@@ -105,8 +110,14 @@ export default function CommentSection({ photoId, initialComments, user }: Props
       });
 
     } catch (err: any) {
-      alert(err.message);
+      setErrorMessage(err.message);
+      setIsErrorModalOpen(true);
     }
+  };
+
+  const openDeleteModal = (id: number, docId: string) => {
+    setCommentToDelete({ id, docId });
+    setIsConfirmModalOpen(true);
   };
 
   const rootComments = comments.filter(c => !c.parent);
@@ -114,6 +125,25 @@ export default function CommentSection({ photoId, initialComments, user }: Props
   return (
     <section className={styles['comment-section']}>
       <h2>Comments ({comments.length})</h2>
+
+      <Modal 
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        onConfirm={() => commentToDelete && handleDelete(commentToDelete.id, commentToDelete.docId)}
+        title="Burn this Comment?"
+        message="Are you sure you want to remove this comment from the fryer? This action cannot be undone."
+        confirmText="Yes, Burn it"
+        cancelText="Keep it"
+      />
+
+      <Modal 
+        isOpen={isErrorModalOpen}
+        onClose={() => setIsErrorModalOpen(false)}
+        title="Whoops!"
+        message={errorMessage}
+        type="alert"
+        confirmText="Got it"
+      />
 
       {user ? (
         <div className={styles['comment-form']}>
@@ -168,7 +198,7 @@ export default function CommentSection({ photoId, initialComments, user }: Props
               {isModerator && (
                 <button 
                   className={`${styles['action-btn']} ${styles['delete-btn']}`}
-                  onClick={() => handleDelete(comment.id)}
+                  onClick={() => openDeleteModal(comment.id, comment.documentId)}
                 >
                   Delete
                 </button>
@@ -196,7 +226,7 @@ export default function CommentSection({ photoId, initialComments, user }: Props
                     {isModerator && (
                       <button 
                         className={`${styles['action-btn']} ${styles['delete-btn']}`}
-                        onClick={() => handleDelete(comment.reply!.id)}
+                        onClick={() => openDeleteModal(comment.reply!.id, comment.reply!.documentId)}
                       >
                         Delete
                       </button>

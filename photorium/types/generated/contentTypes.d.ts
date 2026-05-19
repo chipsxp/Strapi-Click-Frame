@@ -589,6 +589,42 @@ export interface ApiCommentComment extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiDonationDonation extends Struct.CollectionTypeSchema {
+  collectionName: 'donations';
+  info: {
+    description: 'Donations from the community';
+    displayName: 'Donation';
+    pluralName: 'donations';
+    singularName: 'donation';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    amount: Schema.Attribute.Decimal & Schema.Attribute.Required;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    isAnonymous: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::donation.donation'
+    > &
+      Schema.Attribute.Private;
+    month: Schema.Attribute.String & Schema.Attribute.Required;
+    nickname: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+  };
+}
+
 export interface ApiGlobalGlobal extends Struct.SingleTypeSchema {
   collectionName: 'globals';
   info: {
@@ -1299,8 +1335,10 @@ export interface PluginUsersPermissionsUser
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    donations: Schema.Attribute.Relation<'oneToMany', 'api::donation.donation'>;
     email: Schema.Attribute.Email &
       Schema.Attribute.Required &
+      Schema.Attribute.Unique &
       Schema.Attribute.SetMinMaxLength<{
         minLength: 3;
       }>;
@@ -1320,6 +1358,7 @@ export interface PluginUsersPermissionsUser
     > &
       Schema.Attribute.Private;
     nickname: Schema.Attribute.String &
+      Schema.Attribute.Unique &
       Schema.Attribute.SetMinMaxLength<{
         maxLength: 50;
       }>;
@@ -1371,6 +1410,7 @@ declare module '@strapi/strapi' {
       'api::about.about': ApiAboutAbout;
       'api::category.category': ApiCategoryCategory;
       'api::comment.comment': ApiCommentComment;
+      'api::donation.donation': ApiDonationDonation;
       'api::global.global': ApiGlobalGlobal;
       'api::photo.photo': ApiPhotoPhoto;
       'api::profile-config.profile-config': ApiProfileConfigProfileConfig;

@@ -6,13 +6,15 @@ interface ProfileHeaderProps {
   munchingCount?: number;
   photoCount?: number;
   coverImages?: string[];
+  currentPath?: string;
 }
 
 export default function ProfileHeader({
-  userCount = 1,
+  userCount = 0,
   munchingCount = 0,
   photoCount = 0,
   coverImages = [],
+  currentPath = "/",
 }: ProfileHeaderProps) {
   const strapiUrl = "http://127.0.0.1:1337"; // Match environment default
   const coverUrl =
@@ -37,7 +39,9 @@ export default function ProfileHeader({
             </div>
             <div className={styles.details}>
               <div className={styles.nameRow}>
-                <h1 className={styles.name}>Photorium</h1>
+                <a href="/" style={{ textDecoration: "none", color: "inherit" }}>
+                  <h1 className={styles.name}>Photorium</h1>
+                </a>
                 <a href="/signup" className={styles.followBtn}>
                   Sign Up
                 </a>
@@ -62,14 +66,14 @@ export default function ProfileHeader({
 
       <div className={styles.navBar}>
         <div className={styles.navLinks}>
-          <a href="/" className={`${styles.navLink} ${styles.active}`}>
+          <a href="/" className={`${styles.navLink} ${currentPath === "/" ? styles.active : ""}`}>
             Galleries
           </a>
-          <a href="/dashboard" className={styles.navLink}>
-            Your Stash
+          <a href="/hash-brown-hub" className={`${styles.navLink} ${currentPath === "/hash-brown-hub" ? styles.active : ""}`}>
+            Hash Brown Hub
           </a>
-          <a href="#about" className={styles.navLink}>
-            About
+          <a href="/dashboard" className={`${styles.navLink} ${currentPath === "/dashboard" ? styles.active : ""}`}>
+            Your Stash
           </a>
         </div>
       </div>

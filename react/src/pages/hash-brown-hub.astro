@@ -1,0 +1,451 @@
+---
+import ClientLayout from '../layouts/ClientLayout.astro';
+import ProfileHeader from '../components/ProfileHeader';
+import type { StrapiCommunityStats } from '../types/strapi';
+
+const { user: currentUser, token } = Astro.locals;
+const strapiUrl = import.meta.env.STRAPI_URL || 'http://127.0.0.1:1337';
+
+let stats: StrapiCommunityStats | null = null;
+try {
+  const res = await fetch(`${strapiUrl}/api/community-stats`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {}
+  });
+  if (res.ok) {
+    stats = await res.json();
+  }
+} catch (error) {
+  console.error('Error fetching stats:', error);
+}
+
+// Fetch Profile Config for header visuals
+let coverImages: string[] = [];
+try {
+  const configRes = await fetch(`${strapiUrl}/api/profile-config?populate=cover_images`);
+  if (configRes.ok) {
+    const configJson = await configRes.json();
+    coverImages = configJson.data?.cover_images?.map((img: any) => img.url) || [];
+  }
+} catch (error) {
+  console.error('Error fetching profile config:', error);
+}
+---
+
+<ClientLayout title="Hash Brown Hub - Photorium Community Stats">
+  <ProfileHeader 
+    client:load 
+    coverImages={coverImages}
+    userCount={stats?.community.total_users}
+    photoCount={stats?.community.total_photos}
+    munchingCount={stats?.community.total_munching}
+    currentPath={Astro.url.pathname}
+  />
+
+  <main class="hub-container">
+    <div class="hub-grid">
+      <!-- Left Column: Community Stats -->
+      <section class="community-stats">
+        <h1 class="hub-title">Hash Brown Hub</h1>
+        <p class="hub-subtitle">The pulse of Photorium's chip-driven economy.</p>
+
+        <div class="stats-grid">
+          <!-- Monthly Totals -->
+          <div class="stat-card totals-card">
+            <div class="total-item">
+              <span class="emoji">🍟</span>
+              <div class="total-info">
+                <span class="total-value">{stats?.community.monthly_chips.toLocaleString() || 0}</span>
+                <span class="total-label">Chips this Month</span>
+              </div>
+            </div>
+            <div class="total-item">
+              <span class="emoji">🧀</span>
+              <div class="total-info">
+                <span class="total-value">{stats?.community.monthly_cheddar.toLocaleString() || 0}</span>
+                <span class="total-label">Cheddars this Month</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Donations Board -->
+          <div class="stat-card donation-card">
+            <h3>💰 Monthly Community Support</h3>
+            <div class="big-stat">${stats?.community.monthly_total_donation.toLocaleString() || 0}</div>
+            <p>Raised this month for the artists</p>
+            
+            <div class="leaderboard">
+              <h4>Top Munch Support</h4>
+              {stats?.community.top_donors.map((donor, i) => (
+                <div class="leaderboard-row">
+                  <span class="rank">{i + 1}</span>
+                  <span class="name">{donor.nickname}</span>
+                  <span class="value">${donor.amount}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <!-- Top Followed Artists -->
+          <div class="stat-card">
+            <h3>🌟 Trending Artists</h3>
+            <div class="leaderboard">
+              {stats?.community.top_followed.map((artist, i) => (
+                <div class="leaderboard-row">
+                  <span class="rank">{i + 1}</span>
+                  <span class="name">{artist.nickname}</span>
+                  <span class="value">{artist.followers} Followers</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <!-- Top Photos by Chips -->
+          <div class="stat-card">
+            <h3>🍟 Most Munched Photos</h3>
+            <div class="leaderboard">
+              {stats?.community.top_photos_chips.map((photo, i) => (
+                <a href={`/photo/${photo.documentId}`} class="leaderboard-row photo-row">
+                  <span class="rank">{i + 1}</span>
+                  <span class="name">{photo.title}</span>
+                  <span class="value">{photo.classic_munch_count} 🍟</span>
+                </a>
+              ))}
+            </div>
+          </div>
+
+          <!-- Top Photos by Cheddar -->
+          <div class="stat-card">
+            <h3>🧀 Most Faved (Cheddar)</h3>
+            <div class="leaderboard">
+              {stats?.community.top_photos_cheddar.map((photo, i) => (
+                <a href={`/photo/${photo.documentId}`} class="leaderboard-row photo-row">
+                  <span class="rank">{i + 1}</span>
+                  <span class="name">{photo.title}</span>
+                  <span class="value">{photo.cheddar_munch_count} 🧀</span>
+                </a>
+              ))}
+            </div>
+          </div>
+
+          <!-- Top Photos by Clicks -->
+          <div class="stat-card">
+            <h3>👀 Most Eyeballed</h3>
+            <div class="leaderboard">
+              {stats?.community.top_photos_clicks.map((photo, i) => (
+                <a href={`/photo/${photo.documentId}`} class="leaderboard-row photo-row">
+                  <span class="rank">{i + 1}</span>
+                  <span class="name">{photo.title}</span>
+                  <span class="value">{photo.views} Views</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Column: User Stats (Sticky) -->
+      <aside class="user-stats-sidebar">
+        {currentUser ? (
+          <div class="user-stats-panel">
+            <div class="panel-header">
+              <div class="user-avatar">
+                {currentUser.username[0].toUpperCase()}
+              </div>
+              <div class="user-info">
+                <h2>Your Stash</h2>
+                <p>@{currentUser.username}</p>
+              </div>
+            </div>
+
+            <div class="panel-stats">
+              <div class="panel-stat">
+                <span class="label">Total Chips Given</span>
+                <span class="value">{stats?.user?.classic_munch_given_total || 0} 🍟</span>
+              </div>
+              <div class="panel-stat">
+                <span class="label">Cheddar Balance</span>
+                <span class="value">{stats?.user?.cheddar_munch_balance || 0} 🧀</span>
+              </div>
+              <div class="panel-stat">
+                <span class="label">Photos Fried</span>
+                <span class="value">{stats?.user?.total_photos_fried || 0} 📸</span>
+              </div>
+              <div class="panel-stat">
+                <span class="label">Followers</span>
+                <span class="value">{stats?.user?.total_followers || 0} 👥</span>
+              </div>
+              <div class="panel-stat">
+                <span class="label">Following</span>
+                <span class="value">{stats?.user?.total_following || 0} 🤝</span>
+              </div>
+              <div class="panel-stat">
+                <span class="label">Total Support Given</span>
+                <span class="value">${stats?.user?.total_donations_given || 0} 💰</span>
+              </div>
+            </div>
+
+            <button class="donate-btn">Support the Hub</button>
+          </div>
+        ) : (
+          <div class="login-prompt">
+            <h3>Join the Munching</h3>
+            <p>Log in to track your personal chip stats and see your impact on the community.</p>
+            <a href="/login" class="login-btn">Log In</a>
+          </div>
+        )}
+      </aside>
+    </div>
+  </main>
+</ClientLayout>
+
+<style>
+  .hub-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .hub-grid {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 3rem;
+  }
+
+  .hub-title {
+    font-size: 3rem;
+    font-weight: 900;
+    margin: 0;
+    color: var(--text-primary);
+  }
+
+  .hub-subtitle {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    margin-bottom: 3rem;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+  }
+
+  .totals-card {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background: #3d2b1f;
+    color: #fff;
+  }
+
+  .total-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .total-item .emoji {
+    font-size: 2.5rem;
+  }
+
+  .total-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .total-value {
+    font-size: 2rem;
+    font-weight: 900;
+    color: #ffc107;
+  }
+
+  .total-label {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .stat-card {
+    background: var(--bg-secondary, #fff);
+    border: 1px solid var(--border-color, #eee);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  }
+
+  .donation-card {
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border: 2px solid #fbbf24;
+  }
+
+  .big-stat {
+    font-size: 4rem;
+    font-weight: 900;
+    color: #d97706;
+    margin: 1rem 0;
+  }
+
+  .leaderboard {
+    margin-top: 2rem;
+  }
+
+  .leaderboard h4 {
+    margin-bottom: 1rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+  }
+
+  .leaderboard-row {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .leaderboard-row:last-child {
+    border-bottom: none;
+  }
+
+  .photo-row:hover {
+    background: rgba(0,0,0,0.02);
+    padding-left: 0.5rem;
+    margin-left: -0.5rem;
+    margin-right: -0.5rem;
+    border-radius: 0.5rem;
+  }
+
+  .rank {
+    width: 2rem;
+    font-weight: 800;
+    color: #fbbf24;
+  }
+
+  .name {
+    flex: 1;
+    font-weight: 600;
+  }
+
+  .value {
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .user-stats-sidebar {
+    position: sticky;
+    top: 2rem;
+    height: fit-content;
+  }
+
+  .user-stats-panel {
+    background: #3d2b1f;
+    color: #fff;
+    border-radius: 2rem;
+    padding: 2.5rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .user-avatar {
+    width: 64px;
+    height: 64px;
+    background: #ffc107;
+    color: #3d2b1f;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: 900;
+  }
+
+  .user-info h2 {
+    margin: 0;
+    font-size: 1.5rem;
+  }
+
+  .user-info p {
+    margin: 0;
+    opacity: 0.7;
+  }
+
+  .panel-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .panel-stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .panel-stat .label {
+    opacity: 0.7;
+    font-size: 0.9rem;
+  }
+
+  .panel-stat .value {
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: #fff;
+  }
+
+  .donate-btn {
+    width: 100%;
+    background: #ffc107;
+    color: #3d2b1f;
+    border: none;
+    padding: 1rem;
+    border-radius: 1rem;
+    font-weight: 800;
+    margin-top: 2.5rem;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+
+  .donate-btn:hover {
+    transform: scale(1.02);
+  }
+
+  .login-prompt {
+    background: #f5f5f5;
+    padding: 2.5rem;
+    border-radius: 2rem;
+    text-align: center;
+  }
+
+  .login-btn {
+    display: inline-block;
+    background: #3d2b1f;
+    color: #fff;
+    padding: 0.8rem 2rem;
+    border-radius: 1rem;
+    text-decoration: none;
+    font-weight: 700;
+    margin-top: 1rem;
+  }
+
+  @media (max-width: 1024px) {
+    .hub-grid {
+      grid-template-columns: 1fr;
+    }
+    .user-stats-sidebar {
+      position: static;
+      order: -1;
+    }
+  }
+</style>

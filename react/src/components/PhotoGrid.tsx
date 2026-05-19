@@ -2,6 +2,7 @@ import React from 'react';
 import type { StrapiPhoto } from '../types/strapi';
 import styles from './PhotoGrid.module.css';
 import toast from 'react-hot-toast';
+import Modal from './Modal';
 
 interface Props {
   photos: StrapiPhoto[];
@@ -84,22 +85,14 @@ export default function PhotoGrid({ photos }: Props) {
 
   return (
     <div className={styles.gridContainer}>
-      {/* Error Modal (Alert Panel) */}
-      {errorModal.show && (
-        <div className={styles.modalBackdrop} onClick={() => setErrorModal({ show: false, message: '' })}>
-          <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
-            <div className={styles.errorIcon}>🚫</div>
-            <h2 className={styles.errorTitle}>Hold on!</h2>
-            <p className={styles.errorMessage}>{errorModal.message}</p>
-            <button 
-              className={styles.closeBtn} 
-              onClick={() => setErrorModal({ show: false, message: '' })}
-            >
-              Got it
-            </button>
-          </div>
-        </div>
-      )}
+      <Modal 
+        isOpen={errorModal.show}
+        onClose={() => setErrorModal({ show: false, message: '' })}
+        title="Hold on!"
+        message={errorModal.message}
+        type="alert"
+        confirmText="Got it"
+      />
 
       <div className={styles.masonry}>        {localPhotos.map((photo, index) => (
           <div 

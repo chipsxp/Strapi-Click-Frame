@@ -2,7 +2,7 @@
 import ClientLayout from '../layouts/ClientLayout.astro';
 import ProfileHeader from '../components/ProfileHeader';
 import PhotoGrid from '../components/PhotoGrid';
-import type { StrapiPhoto, StrapiUser, StrapiProfileConfig } from '../types/strapi';
+import type { StrapiPhoto, StrapiUser, StrapiProfileConfig, StrapiCommunityStats } from '../types/strapi';
 
 const { user: currentUser, token } = Astro.locals;
 
@@ -62,16 +62,22 @@ try {
   console.error('[Header] Error fetching profile config:', error);
 }
 
-// Fetch REAL counts for the community
-const usersRes = await fetch(`${strapiUrl}/api/users`, {
-  headers: token ? { Authorization: `Bearer ${token}` } : {}
-});
-const usersData: StrapiUser[] = await usersRes.json();
-const totalUsers = Array.isArray(usersData) ? usersData.length : 0;
+// Fetch REAL counts for the community from the Hub API
+let stats: StrapiCommunityStats | null = null;
+try {
+  const statsRes = await fetch(`${strapiUrl}/api/community-stats`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {}
+  });
+  if (statsRes.ok) {
+    stats = await statsRes.json();
+  }
+} catch (error) {
+  console.error('[Header] Error fetching community stats:', error);
+}
 
-const reactionsRes = await fetch(`${strapiUrl}/api/reactions?pagination[pageSize]=1`);
-const reactionsJson = await reactionsRes.json();
-const totalMunching = reactionsJson.meta?.pagination?.total || 0;
+const totalUsers = stats?.community.total_users || 0;
+const totalMunching = stats?.community.total_munching || 0;
+const totalPhotos = stats?.community.total_photos || 0;
 
 const coverImages = profileConfig?.cover_images?.map((img) => img.url) || [];
 ---
@@ -79,17 +85,20 @@ const coverImages = profileConfig?.cover_images?.map((img) => img.url) || [];
 <ClientLayout title="Photorium Profile">
 	<ProfileHeader 
 		client:load 
-		photoCount={photos.length} 
+		photoCount={totalPhotos} 
 		userCount={totalUsers} 
 		munchingCount={totalMunching} 
     coverImages={coverImages}
+    currentPath={Astro.url.pathname}
 	/>
   
   <div class="feed-tabs-wrapper">
     <div class="feed-tabs">
       <a href="/?feed=discovery" class={feedParam === 'discovery' ? "active" : ""}>Discovery</a>
       {currentUser && (
-        <a href="/?feed=following" class={feedParam === 'following' ? "active" : ""}>Following</a>
+        <a href="/?feed=following" class={feedParam === 'following' ? "active" : ""}>
+          Following ({stats?.user?.total_following || 0})
+        </a>
       )}
     </div>
   </div>

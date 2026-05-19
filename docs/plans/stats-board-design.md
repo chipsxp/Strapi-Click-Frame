@@ -1,9 +1,9 @@
-# Community Stats Board & User Panel - Feature Design Document
+# Hash Brown Hub (Community Stats & User Panel) - Feature Design Document
 
 **Author:** Gemini CLI
 **Date:** 2026-05-18
 **Status:** Draft
-**Version:** 1.1
+**Version:** 1.2
 
 ---
 
@@ -11,7 +11,7 @@
 
 ### 1.1 Executive Summary
 
-**What:** A new "About" page implementation featuring a Community Stats Board (global leaderboards and totals) and a personalized Login User Stats Panel.
+**What:** A new **"Hash Brown Hub"** implementation featuring a Community Stats Board (global leaderboards and totals) and a personalized Login User Stats Panel.
 
 **Why:** To drive user engagement by gamifying the "Chip Cheddar" economy and providing transparency into community contributions, individual impact, and donation support.
 
@@ -31,7 +31,7 @@ The current "About" page contains static content modules that do not serve the d
 - No mechanism to track and display community donations.
 
 **Desired State:**
-- A high-impact dashboard showing top contributors and community totals.
+- A high-impact dashboard (**Hash Brown Hub**) showing top contributors and community totals.
 - A floating **User Stats Panel** on the right side for personalized data.
 - Integration with PayPal for donations, tracking both Anonymous totals and Nickname-based leaderboards.
 
@@ -43,9 +43,9 @@ The current "About" page contains static content modules that do not serve the d
 
 ```mermaid
 journey
-    title User Journey for Community Stats
+    title User Journey for Hash Brown Hub
     section Discovery
-      User clicks 'About' in header: 5: User
+      User clicks 'Hash Brown Hub' in header: 5: User
       Views global leaderboards on left: 5: User
     section Engagement
       Logged-in user sees personal floating stats on right: 5: User
@@ -73,7 +73,7 @@ See `docs/stats_board_flow.mmd` for the complete diagram.
 
 - **Anonymous Donations:** All donations marked "Anonymous" are aggregated into a single `monthly_anonymous_total` field.
 - **Identified Donations:** Donations linked to a `nickname` (or logged-in user) are ranked to display the **Top 5 Donors** of the month.
-- **Integration:** PayPal button in the dashboard/about page.
+- **Integration:** PayPal button in the **Hash Brown Hub**.
 
 ### 4.3 "5 Chips = 1 Cheddar" Logic (Activity Diagram)
 
@@ -108,6 +108,6 @@ flowchart TD
 
 1.  **Schema Update**: Create the `donation` collection in Strapi.
 2.  **API Build**: Implement the custom `community-stats` aggregation logic (SQLite queries).
-3.  **Frontend Layout**: Replace `About.astro` modules with the new grid layout.
+3.  **Frontend Layout**: Replace `About.astro` modules with the new **Hash Brown Hub** grid layout.
 4.  **Component Crafting**: Build the floating `UserStatsPanel.tsx` and the `LeaderboardRow.tsx` components.
 5.  **Analytics**: Implement the image detail "Click" tracking logic.

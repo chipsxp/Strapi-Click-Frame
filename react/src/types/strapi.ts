@@ -147,3 +147,45 @@ export interface StrapiGlobal {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface StrapiDonation {
+  id: number;
+  documentId: string;
+  amount: number;
+  isAnonymous: boolean;
+  user?: StrapiUser;
+  nickname?: string;
+  month: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StrapiCommunityStats {
+  community: {
+    total_users: number;
+    total_photos: number;
+    total_munching: number;
+    monthly_total_donation: number;
+    monthly_chips: number;
+    monthly_cheddar: number;
+    top_donors: {
+      nickname: string;
+      amount: number;
+    }[];
+    top_followed: {
+      nickname: string;
+      followers: number;
+    }[];
+    top_photos_chips: StrapiPhoto[];
+    top_photos_cheddar: StrapiPhoto[];
+    top_photos_clicks: StrapiPhoto[];
+  };
+  user: {
+    classic_munch_given_total: number;
+    cheddar_munch_balance: number;
+    total_photos_fried: number;
+    total_followers: number;
+    total_following: number;
+    total_donations_given: number;
+  } | null;
+}

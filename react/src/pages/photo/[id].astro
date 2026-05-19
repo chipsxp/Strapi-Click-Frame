@@ -20,6 +20,7 @@ params.append('populate[4]', 'comments');
 params.append('populate[5]', 'comments.author');
 params.append('populate[6]', 'comments.reply');
 params.append('populate[7]', 'comments.reply.author');
+params.append('populate[8]', 'comments.parent');
 
 const response = await fetch(`${strapiUrl}/api/photos/${id}?${params.toString()}`);
 
@@ -130,6 +131,19 @@ const formattedDate = new Date(photo.createdAt || Date.now()).toLocaleDateString
       </div>
     </div>
   </div>
+
+  <script is:inline define:vars={{ id, strapiUrl }}>
+    // Track view after 2 seconds to avoid counting quick bounces
+    setTimeout(async () => {
+      try {
+        await fetch(`${strapiUrl}/api/photos/${id}/view`, {
+          method: 'POST'
+        });
+      } catch (err) {
+        console.error('Failed to track view:', err);
+      }
+    }, 2000);
+  </script>
 </ClientLayout>
 
 <style>
