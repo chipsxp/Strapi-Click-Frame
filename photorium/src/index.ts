@@ -49,6 +49,19 @@ export default {
           const actions = ['find', 'findOne'];
           if (controller === 'donation') {
             actions.push('create');
+            if (controller === 'donation') {
+              const paypalPermissionCreate = await ensurePermission(
+                publicRole.id,
+                `api::donation.paypal.createOrder`
+              );
+              if (paypalPermissionCreate) publicPermissionsToCreate.push(paypalPermissionCreate);
+
+              const paypalPermissionCapture = await ensurePermission(
+                publicRole.id,
+                `api::donation.paypal.captureOrder`
+              );
+              if (paypalPermissionCapture) publicPermissionsToCreate.push(paypalPermissionCapture);
+            }
           }
           if (controller === 'community-stat') {
             actions.push('getStats');
@@ -117,6 +130,8 @@ export default {
           'api::comment.comment.find',
           'api::comment.comment.findOne',
           'api::donation.donation.create',
+          'api::donation.paypal.createOrder',
+          'api::donation.paypal.captureOrder',
           'api::community-stat.community-stat.getStats'
         ];
 
@@ -175,6 +190,8 @@ export default {
           'api::comment.comment.find',
           'api::comment.comment.findOne',
           'api::comment.comment.delete',
+          'api::donation.paypal.createOrder',
+          'api::donation.paypal.captureOrder',
           'api::community-stat.community-stat.getStats'
         ];
 

@@ -1,10 +1,12 @@
 ---
 import ClientLayout from '../layouts/ClientLayout.astro';
 import ProfileHeader from '../components/ProfileHeader';
+import SupportHubButton from '../components/SupportHubButton';
 import type { StrapiCommunityStats } from '../types/strapi';
 
 const { user: currentUser, token } = Astro.locals;
 const strapiUrl = import.meta.env.STRAPI_URL || 'http://127.0.0.1:1337';
+const paypalClientId = import.meta.env.PUBLIC_PAYPAL_CLIENT_ID || '';
 
 let stats: StrapiCommunityStats | null = null;
 try {
@@ -184,13 +186,26 @@ try {
               </div>
             </div>
 
-            <button class="donate-btn">Support the Hub</button>
+            <SupportHubButton 
+              client:load 
+              paypalClientId={paypalClientId}
+              isLoggedIn={!!currentUser}
+              defaultNickname={currentUser?.nickname || currentUser?.username || ''}
+            />
           </div>
         ) : (
           <div class="login-prompt">
             <h3>Join the Munching</h3>
             <p>Log in to track your personal chip stats and see your impact on the community.</p>
             <a href="/login" class="login-btn">Log In</a>
+            <div style="margin-top: 1rem;">
+              <SupportHubButton 
+                client:load 
+                paypalClientId={paypalClientId}
+                isLoggedIn={false}
+                defaultNickname=""
+              />
+            </div>
           </div>
         )}
       </aside>

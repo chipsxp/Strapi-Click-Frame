@@ -1,0 +1,66 @@
+---
+
+### **# Strapi + Astro Cross-Reference Index**
+### **## LLM Content Research & Semantic Search Guide**
+
+---
+
+**Document Purpose**: Cross-reference index to help LLM coder agents quickly find relevant documentation sections, code patterns, and solutions for integrating the PayPal JavaScript SDK and REST API within the Photorium Hash Brown Hub donation and cheddar payment system.
+
+**Target Users**: Gemini LLM Coder Agents working on PayPal JavaScript SDK + REST API + TypeScript Photorium Hash Brown Hub donation and cheddar payment system.
+
+**Optimization**: Semantic search tags, bidirectional references, problem-solution mapping, quick lookup tables, leveraging content from scraped documentation files.
+
+---
+
+### **# Core Concepts & Terminology (from docs)**
+
+*   **PayPal JavaScript SDK**: Client-side library for embedding PayPal buttons and handling payments securely in the browser. ([javascript-scrape.json] `/sdk/js/`)
+    *   Key Component: `CardFields` (for accepting card details securely). ([javascript-scrape.json] `/sdk/js/v1/reference/`)
+    *   Key Component: `HostedFields` (Legacy v5 component for secure card entry). ([javascript-scrape.json] `/sdk/js/v1/reference/`)
+    *   Relevant Files: `paypal-js` npm package, `react-paypal-js` npm package. ([javascript-scrape.json] `/sdk/js/`)
+*   **PayPal REST APIs**: Server-side APIs for payment creation, authorization, capture, refunds, subscriptions, etc. ([pp-rest-api.json] `/api/rest/`)
+    *   **Orders API**: Creates payment orders, handles intent (capture/auth). ([jacascript-scrape.json], [pp-rest-api.json])
+    *   **Payments API**: Retrieves details about sales, authorizations, captures, refunds. ([jacascript-scrape.json] line 338)
+    *   **Subscriptions API**: Manages recurring payments. ([jacascript-scrape.json] `/docs/api/subscriptions/v1/`)
+*   **Webhooks**: PayPal sends server-to-server notifications about events (e.g., payment completed, refund processed). ([jacascript-scrape.json] line 100, `/docs/payouts/standard/reference/webhooks/`)
+*   **Authentication**: OAuth 2.0 client credentials for server-side REST API calls. ([pp-rest-api.json] `/api/rest/`)
+*   **Sandbox vs Live**: Separate environments for testing and production. ([pp-rest-api.json] `/api/rest/`)
+*   **Security Guidelines**: Includes CSRF, XSS prevention, vulnerability management, secure development process. ([jacascript-scrape.json] `/api/rest/reference/info-security-guidelines/`, lines 14-20, 118-125)
+
+### **# Problem-Solution Mapping & Quick Lookups**
+
+| Problem/Solution | Semantic Tags | Relevant Doc Section (from provided files) | Notes |
+| :--- | :--- | :--- | :--- |
+| **Initialize PayPal JS SDK on frontend** | `sdk`, `client-side`, `load`, `button`, `card-fields`, `hosted-fields` | `/sdk/js/` | Use `paypal-js` npm package for best practices. Check COOP header. |
+| **Create a payment order (donation)** | `order`, `create-order`, `server-side`, `backend`, `api-call`, `intent=capture` | `/api/rest/`, `/docs/checkout/` | Use Orders API v2. Handle errors like `INVALID_REQUEST`. |
+| **Capture a payment after user approval** | `capture`, `execute`, `confirm`, `order-id`, `backend` | `/api/rest/`, `/docs/checkout/` | Call capture endpoint via server-side after client approves. |
+| **Handle successful payment webhook** | `webhook`, `notification`, `event-handling`, `verification`, `server-side` | Line 100 (verification example), `/docs/payouts/standard/reference/webhooks/` | Verify webhook signature using PayPal's verification endpoint. |
+| **Refund a captured payment** | `refund`, `payments-api`, `capture-id`, `backend` | Lines 335-340 (example link structure), `/api/rest/` | Use Payments API v1 or v2 to refund a specific capture ID. |
+| **Integrate Card Fields for direct card entry** | `card-fields`, `secure-input`, `tokenization`, `frontend` | `/sdk/js/`, `/sdk/js/v1/reference/`, `/docs/checkout/advanced/customize/card-fields/` | Follow style guide and SCA guidelines if applicable. |
+| **Verify webhook signature server-side** | `webhook`, `verification`, `security`, `signature`, `cert-url` | Line 87 (example curl call structure) | Crucial for security. Use transmission ID, time, cert URL, algo, sig, and raw body. |
+| **Set up recurring donations (subscriptions)** | `subscription`, `recurring`, `billing-cycle`, `plan` | `/docs/subscriptions/`, `/docs/api/subscriptions/v1/` | Requires different setup than one-time payments. |
+| **Accept alternative payment methods (APMs)** | `apm`, `ideal`, `eps`, `blik`, `mybank`, `trustly`, `przelewy24` | `/docs/checkout/apm/` | Different flows exist (JS SDK, Orders API). |
+| **Handle common REST API errors** | `error`, `response`, `debug_id`, `details`, `validation` | Lines 25-35 (error structure example) | Parse `name`, `message`, `debug_id`, and `details` array for troubleshooting. |
+| **Secure server-side implementation** | `security`, `csrf`, `xss`, `vulnerability`, `process` | `/api/rest/reference/info-security-guidelines/`, lines 14-20, 118-125 | Follow OWASP guidelines, validate inputs, manage secrets, scan regularly. |
+
+### **# Bidirectional References & Links**
+
+*   **JS SDK Integration** often requires corresponding **REST API** endpoints for order creation/capture.
+    *   JS SDK Ref: `/sdk/js/` -> REST API: Orders API (`/api/rest/`, `/docs/checkout/`)
+*   **Webhook Setup** requires handling events defined by the **REST API**.
+    *   Webhook Ref: `/docs/payouts/standard/reference/webhooks/` -> REST API Events: (Implied by `/api/rest/` and webhook docs)
+*   **Security Guidelines** apply to both **JS SDK** and **REST API** implementations.
+    *   Security Ref: `/api/rest/reference/info-security-guidelines/` -> JS SDK/REST API docs.
+*   **Card Fields** guide links to **Style Guide** and **3D Secure** guide.
+    *   Card Fields: `/docs/checkout/advanced/customize/card-fields/` -> Style: `/docs/checkout/advanced/customize/card-field-style/`, 3D Secure: `/docs/checkout/advanced/customize/3d-secure/`
+*   **APM Integrations** have guides for both **JS SDK** and **Orders API**.
+    *   APM Example (iDEAL): `/docs/checkout/apm/ideal/` -> JS SDK: `/docs/checkout/apm/ideal/js-sdk/`, Orders API: `/docs/checkout/apm/ideal/orders-api/`
+
+### **# Key File Sections & Examples Found**
+
+*   **Error Response Structure** (Lines 25-35, `jacascript-scrape.json`): Essential for parsing API errors.
+*   **Webhook Signature Verification Example** (Lines 87-93, `pp-rest-api.json`): Provides the exact API call structure.
+*   **API Link Object Example** (Lines 335-340, `jacascript-scrape.json`): Shows how API responses contain links for related actions (e.g., refund link).
+*   **Security Guidelines Summary** (Lines 14-20, 118-125, `jacascript-scrape.json`): Highlights critical security requirements.
+*   **Markdown Access Tip** (Lines 6-8, `pp-rest-api.json`): `/md/docs/...` might provide easier-to-parse Markdown versions of docs.
