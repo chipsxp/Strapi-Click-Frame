@@ -1,0 +1,29 @@
+X 1. Shared Community Flavors (Role-Based Control)
+   * Editor Lockdown: Restricted renaming, merging, and deleting of categories to users with Editor or Admin roles.
+   * Master Control: Editors can now see and manage all flavors in the system, regardless of who created them.
+   * Z-Index Priority: Fixed the confirmation modal so it always appears on top of the management panel.
+
+ X 2. Multi-Flavor Support (Many-to-Many Tags)
+   * Multiple Categories: Photos are no longer restricted to one category; they can now carry multiple "flavors" simultaneously.
+   * Smart Input: Users can type comma-separated values (e.g., Retro, Cyber, Neon) during upload or editing.
+   * Visual Tags: Replaced the single flavor text with individual, styled tags on the photo detail page.
+
+X  3. Social Notifications (Recent Sizzles Feed)
+   * Rolling Alerts: A new dashboard feed showing up to 6 recent uploads from artists you follow.
+   * Grid Layout: A 3-column, responsive grid designed for high-density information without looking cluttered.
+   * Real-time Polling: The system checks for new art every 2 minutes and allows users to dismiss alerts individually.
+
+  4. Stable Follow System
+   * Database Fix: Resolved a critical 500 error by properly mapping alphanumeric documentIds to numeric ids for user relationships.
+   * Reliable Toggling: Stable follow/unfollow actions between different accounts with instant UI feedback.
+
+  5. Munch & Economics (Chip System)
+   * Classic Munch (🍟): A "like" system that increments the photo's popularity and the artist's community standing.
+   * Cheddar Munch (🧀/Chips): A premium reaction system that transfers currency from the giver to the artist.
+   * Stats Tracking: Real-time tracking of "Classic Given" and "Cheddar Balance" on the Dashboard sidebar.
+
+  6. Lore & Identity (Profile Customization)
+   * Artist Settings: Complete system for updating Nicknames, Bio (Lore), and Avatars.
+   * Role-Aware UI: Middleware-level role population that dynamically hides or shows "Editor" tools based on permissions.
+
+  Bonus (Developer Quality): The entire frontend has been refactored to Strict TypeScript Standards, passing astro check with 0 errors, 0 warnings, and 0 hints.

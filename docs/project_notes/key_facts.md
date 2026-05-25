@@ -103,13 +103,19 @@ Non-sensitive project configuration and constants. **Never store passwords, API 
 
 ---
 
-## Frontend Design (Flickr-style)
+## Deployment URLs (Staging/Production)
 
-- **Layout**: Responsive grid array with rows and columns.
-- **Intersections**: Each grid cell contains:
-  - Photograph (Optimized via ImageKit)
-  - Title
-  - Description
-- **Tech Stack**: Astro 6 + Vite + strapi-community-astro-loader.
-- **Content Delivery**: Strapi REST API → Astro Content Collections → Vite Build → Static/SSR Public Grid.
+- **Strapi Cloud (Backend)**: `https://lively-advice-e5a07e92e2.strapiapp.com`
+- **Strapi Cloud Admin**: `https://lively-advice-e5a07e92e2.strapiapp.com/admin`
+- **Railway (Frontend Staging)**: `https://photorium-production.up.railway.app`
+- **Production Domain**: `https://chipsxp.com` (Target)
+
+---
+
+## Infrastructure Notes
+
+- **Hybrid Setup**: Strapi Cloud (Backend) + Railway (Frontend Staging) + LiteSpeed (Production).
+- **Railway Deployment**: Triggered manually via CLI (`railway up`) from the `react/` directory to bypass automatic GitHub hooks during testing phases.
+- **Strapi Cloud Deployment**: Triggered via CLI (`npx strapi deploy`) or via GitHub connection to the `worktree-HashBrownHub` branch.
+
 

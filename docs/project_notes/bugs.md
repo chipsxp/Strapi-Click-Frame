@@ -138,8 +138,26 @@ Track bugs chronologically. Keep entries brief. Remove entries older than 6 mont
 
 ---
 
-### 2026-05-12 - `Astro.locals` Properties Missing (TypeScript Global Scope Issue)
-- **Root Cause**: A top-level `import type { StrapiUser } from "./types/strapi"` statement was added to `react/src/env.d.ts`. In TypeScript, any file with a top-level `import` or `export` is treated as a module rather than a global script. This caused the ambient `declare namespace App` block to be treated as a local declaration rather than an extension of the global Astro `App` namespace, making `Astro.locals` revert to its empty default state.
-- **Solution**: Refactored `react/src/env.d.ts` to use inline dynamic imports: `user: import("./types/strapi").StrapiUser | null;`. This maintains the file's status as a global script.
-- **Prevention**: **NEVER** use top-level `import` or `export` in `env.d.ts` files intended to extend global namespaces. Always use inline dynamic `import()` for external types.
+### 2026-05-22 - Headless CLI Authentication (Railway/Strapi Cloud)
+- **Issue**: Standard `railway login` or `npx strapi login` commands fail or hang in a CLI environment because they attempt to open a local web browser.
+- **Root Cause**: The CLI environment does not have a browser or desktop environment to handle the OAuth callback automatically.
+- **Solution**: (1) For Railway, used `railway login --browserless` which provides a code and an activation URL. (2) For Strapi Cloud, used a background process to capture the login URL, or manually visited the activation page.
+- **Prevention**: Always check for `--browserless`, `--headless`, or `--no-open` flags when running CLI authentication in remote or restricted environments.
+
+---
+
+### 2026-05-22 - Automating Interactive CLI Prompts (Strapi Cloud Deploy)
+- **Issue**: `npx strapi deploy` requires multiple interactive inputs (project name, node version, region, confirmation) which are difficult to handle via standard shell piping (`echo |`) due to the way `inquirer` handles stdin.
+- **Root Cause**: PowerShell piping or simple `echo` commands often close the stdin stream prematurely or fail to trigger the prompt listener in complex CLI tools.
+- **Solution**: Created a custom Node.js script (`deploy_strapi.js`) using `child_process.spawn`. This script listens to `stdout` for specific prompt strings and writes the corresponding answers to `stdin` without closing the stream, allowing for a fully automated interactive session.
+- **Prevention**: Use a wrapper script with `spawn` and stream listeners for any CLI tool that lacks a "force" or "non-interactive" mode for all its prompts.
+
+---
+
+### 2026-05-22 - Astro Build Fails due to Missing Backend (Strapi Cloud)
+- **Issue**: `railway up` for the Astro frontend failed during the build phase with `generate-content-types-error`.
+- **Root Cause**: The `strapi-community-astro-loader` performs a "preflight" check and fetches content during the `astro build` command. If the `STRAPI_URL` is a placeholder or pointing to a non-existent instance, the build fails.
+- **Solution**: Deployed the Strapi Cloud backend first, obtained the live URL, and updated the Railway environment variables *before* attempting the final frontend build.
+- **Prevention**: In headless CMS architectures (Astro + Strapi), the backend must be live and accessible before the frontend build command is executed, as content is often fetched at build-time.
+
 

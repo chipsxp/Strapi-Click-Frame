@@ -1,0 +1,13 @@
+most chip cheddar counts activated per week		login user stats
+total chip and cheddar counts accumulated per month 	total chip given
+total chip and cheddar y/y counts				total cheddar given
+most user acquired chip cheddar counts			total chip received
+most following follower counts				total cheddar received
+most donations amount per week				total donations given
+most anoymous amount						total photos fried
+most user nickname amount					total clicks received
+most photos chip count
+most photos with cheddar count
+most clicks images for details page clicked  
+
+this is a given economy every five chips for one cheddar. if you do not give the cheddar it stays at 1 until given no matter how many chips given. its always approaching five chips equals 1 cheddar (the cheddar is given when a given chip count is divisible by five without a remainder and the previous cheddar has been given. no mechanism exists for missed cheddar breakpoints)

@@ -1,6 +1,6 @@
-# Architectural Decisions
+﻿# Architectural Decisions
 
-Architectural Decision Records (ADRs) for the Strapi-Click-Frame project. Add a new entry for every significant technical choice. Never delete old entries — mark them superseded instead.
+Architectural Decision Records (ADRs) for the Strapi-Click-Frame project. Add a new entry for every significant technical choice. Never delete old entries â€” mark them superseded instead.
 
 ---
 
@@ -16,14 +16,14 @@ Architectural Decision Records (ADRs) for the Strapi-Click-Frame project. Add a 
 - Node's module resolution walks up directories, so `astro dev` run from `react/` finds the package in the parent `node_modules/`
 
 **Alternatives Considered:**
-- Add to `react/package.json` → Rejected: duplicates the install, adds friction when upgrading
-- Monorepo workspaces → Rejected: overkill for a two-project repo
+- Add to `react/package.json` â†’ Rejected: duplicates the install, adds friction when upgrading
+- Monorepo workspaces â†’ Rejected: overkill for a two-project repo
 
 **Consequences:**
-- ✅ Single install location, simpler upgrades
-- ✅ Works with Node's natural resolution
-- ❌ The dependency is implicit — `react/package.json` doesn't list it, which can confuse new developers
-- ❌ If `react/` is ever extracted to a standalone repo, the dependency must be moved
+- âœ… Single install location, simpler upgrades
+- âœ… Works with Node's natural resolution
+- âŒ The dependency is implicit â€” `react/package.json` doesn't list it, which can confuse new developers
+- âŒ If `react/` is ever extracted to a standalone repo, the dependency must be moved
 
 ---
 
@@ -66,15 +66,15 @@ Architectural Decision Records (ADRs) for the Strapi-Click-Frame project. Add a 
 - Updated `root/package.json` to `"strapi-community-astro-loader": "^4.0.0"`
 
 **Alternatives Considered:**
-- Downgrade Astro to 5.x → Rejected: goes backwards, loses Astro 6 improvements
-- Add `@ts-ignore` / `as any` casts → Rejected: masks errors, no runtime guarantee
-- Switch to `@sensinum/astro-strapi-loader` → Rejected: more actively maintained but different API; v4 is the right upgrade path for the existing code
+- Downgrade Astro to 5.x â†’ Rejected: goes backwards, loses Astro 6 improvements
+- Add `@ts-ignore` / `as any` casts â†’ Rejected: masks errors, no runtime guarantee
+- Switch to `@sensinum/astro-strapi-loader` â†’ Rejected: more actively maintained but different API; v4 is the right upgrade path for the existing code
 
 **Consequences:**
-- ✅ Fully Astro 6 compatible types
-- ✅ No type casts needed
-- ❌ v4 API changed — `strapiUrl` → `clientConfig.baseURL`, Zod `schema` now required per collection
-- ❌ v4 does not support Strapi single types (requires custom loader — see ADR-003)
+- âœ… Fully Astro 6 compatible types
+- âœ… No type casts needed
+- âŒ v4 API changed â€” `strapiUrl` â†’ `clientConfig.baseURL`, Zod `schema` now required per collection
+- âŒ v4 does not support Strapi single types (requires custom loader â€” see ADR-003)
 
 ---
 
@@ -83,7 +83,7 @@ Architectural Decision Records (ADRs) for the Strapi-Click-Frame project. Add a 
 **Context:**
 - Strapi has two content type kinds: collection types (paginated) and single types (one entry)
 - Single types (`about`, `global`) are accessed at singular REST endpoints: `/api/about`, `/api/global`
-- `strapi-community-astro-loader` v4 calls `@strapi/client`'s `client.collection()` which pluralizes the name and paginates — incompatible with single types
+- `strapi-community-astro-loader` v4 calls `@strapi/client`'s `client.collection()` which pluralizes the name and paginates â€” incompatible with single types
 
 **Decision:**
 - Write a `strapiSingleLoader` helper function inside `react/src/content.config.ts`
@@ -92,15 +92,15 @@ Architectural Decision Records (ADRs) for the Strapi-Click-Frame project. Add a 
 - All Strapi single types (`about`, `global`) use this loader
 
 **Alternatives Considered:**
-- Set `pluralContentType` to the singular name → Rejected: `@strapi/client`'s pagination logic still fails on the single-type response shape (missing `meta.pagination`)
-- Remove `about` and `global` from collections → Rejected: these may be needed for future pages
-- Use `@strapi/client`'s `client.single()` → Rejected: `@strapi/client` is not listed in `react/package.json`, making it an implicit dependency; `fetch()` is always available in Astro
+- Set `pluralContentType` to the singular name â†’ Rejected: `@strapi/client`'s pagination logic still fails on the single-type response shape (missing `meta.pagination`)
+- Remove `about` and `global` from collections â†’ Rejected: these may be needed for future pages
+- Use `@strapi/client`'s `client.single()` â†’ Rejected: `@strapi/client` is not listed in `react/package.json`, making it an implicit dependency; `fetch()` is always available in Astro
 
 **Consequences:**
-- ✅ Correct Strapi single-type REST API usage
-- ✅ No extra dependencies in `react/`
-- ✅ Easy to extend (just call `strapiSingleLoader({ contentType: "..." })`)
-- ❌ Custom code to maintain if Astro or Strapi loader API changes
+- âœ… Correct Strapi single-type REST API usage
+- âœ… No extra dependencies in `react/`
+- âœ… Easy to extend (just call `strapiSingleLoader({ contentType: "..." })`)
+- âŒ Custom code to maintain if Astro or Strapi loader API changes
 
 ---
 
@@ -118,13 +118,13 @@ Architectural Decision Records (ADRs) for the Strapi-Click-Frame project. Add a 
 - `blocks` dynamic zone uses `z.array(z.record(z.string(), z.any()))`
 
 **Alternatives Considered:**
-- Fully strict schemas → Rejected: would break on any Strapi API shape change; complex to maintain for dynamic zones
-- All `z.any()` → Rejected: loses all type safety for fields that are actually used in pages
+- Fully strict schemas â†’ Rejected: would break on any Strapi API shape change; complex to maintain for dynamic zones
+- All `z.any()` â†’ Rejected: loses all type safety for fields that are actually used in pages
 
 **Consequences:**
-- ✅ Build won't break on Strapi API shape variations
-- ✅ Simple scalars still type-checked in pages
-- ❌ No type safety on `blocks`, `author`, `category` in page components
+- âœ… Build won't break on Strapi API shape variations
+- âœ… Simple scalars still type-checked in pages
+- âŒ No type safety on `blocks`, `author`, `category` in page components
 
 ---
 
@@ -140,13 +140,13 @@ Architectural Decision Records (ADRs) for the Strapi-Click-Frame project. Add a 
 - This provides a stable, always-present fallback for TypeScript to resolve all Astro virtual modules
 
 **Alternatives Considered:**
-- Document "run `astro dev` first" → Rejected: poor DX, editors still show red errors
-- Commit `.astro/types.d.ts` → Rejected: generated file, changes on every Astro upgrade
+- Document "run `astro dev` first" â†’ Rejected: poor DX, editors still show red errors
+- Commit `.astro/types.d.ts` â†’ Rejected: generated file, changes on every Astro upgrade
 
 **Consequences:**
-- ✅ Zero TypeScript errors in a fresh clone before running any commands
-- ✅ Standard Astro project pattern
-- ❌ Needs to exist in every Astro project in this repo (only one currently)
+- âœ… Zero TypeScript errors in a fresh clone before running any commands
+- âœ… Standard Astro project pattern
+- âŒ Needs to exist in every Astro project in this repo (only one currently)
 
 ---
 
@@ -155,7 +155,7 @@ Architectural Decision Records (ADRs) for the Strapi-Click-Frame project. Add a 
 **Context:**
 - `strapi-community-astro-loader` v4 uses `@strapi/client` internally
 - The env variable `STRAPI_URL` is set to `http://localhost:1337` (no `/api`)
-- `@strapi/client` does NOT auto-append `/api` — it uses `baseURL` verbatim
+- `@strapi/client` does NOT auto-append `/api` â€” it uses `baseURL` verbatim
 
 **Decision:**
 - Always pass `clientConfig: { baseURL: \`${strapiUrl}/api\` }` to `strapiLoader()`
@@ -177,23 +177,49 @@ Architectural Decision Records (ADRs) for the Strapi-Click-Frame project. Add a 
 - **Upload Proxying**: Built a secure server-side proxy for ImageKit uploads to protect API credentials.
 
 **Consequences:**
-- ✅ **Security**: Significantly improved by keeping JWTs and API keys off the client.
-- ✅ **Experience**: Fully dynamic and interactive social features are now possible.
-- ❌ **Complexity**: Increased frontend logic (API routes, middleware) and backend lifecycles.
-- ❌ **Performance**: Shift from static HTML to on-demand rendering; mitigated by optimized Strapi queries.
+- âœ… **Security**: Significantly improved by keeping JWTs and API keys off the client.
+- âœ… **Experience**: Fully dynamic and interactive social features are now possible.
+- âŒ **Complexity**: Increased frontend logic (API routes, middleware) and backend lifecycles.
+- âŒ **Performance**: Shift from static HTML to on-demand rendering; mitigated by optimized Strapi queries.
 
- # # #   A D R - 0 1 0 :   F o r m E v e n t   D e p r e c a t i o n   a n d   S u b m i t E v e n t   A d o p t i o n   ( 2 0 2 6 - 0 5 - 1 1 ) 
- 
- * * C o n t e x t : * * 
- -   R e a c t ' s   s y n t h e t i c   \ F o r m E v e n t \   t y p e   w a s   p r o d u c i n g   T y p e S c r i p t   e r r o r s   d u r i n g   \  s t r o   c h e c k \   w h e n   a s s i g n e d   t o   a   s t a n d a r d   D O M   \ S u b m i t E v e n t \   h a n d l e r   i n s i d e   R e a c t   c o m p o n e n t s   e m b e d d e d   i n   A s t r o . 
- -   E x p l i c i t l y   c a s t i n g   o r   a d h e r i n g   t o   t h e   D O M   \ S u b m i t E v e n t \   e n s u r e s   b e t t e r   c o m p a t i b i l i t y   w h e n   m o v i n g   b e y o n d   s t a n d a r d   R e a c t   b o u n d a r i e s   o r   s t r i c t   t y p e - c h e c k i n g   m o d e s . 
- 
- * * D e c i s i o n : * * 
- -   W e   a r e   d e p r e c a t i n g   t h e   u s e   o f   \ R e a c t . F o r m E v e n t < H T M L F o r m E l e m e n t > \   i n   f a v o r   o f   t h e   s t a n d a r d   D O M   \ S u b m i t E v e n t \   f o r   f o r m   s u b m i s s i o n   h a n d l e r s . 
- -   I n   c a s e s   w h e r e   R e a c t ' s   \ o n S u b m i t \   p r o p   s t r i c t l y   e x p e c t s   a   \ F o r m E v e n t H a n d l e r \ ,   w e   w i l l   c a s t   t h e   s y n t h e t i c   e v e n t   a p p r o p r i a t e l y   ( e . g . ,   \ o n S u b m i t = { ( e )   = >   h a n d l e S e a r c h ( e   a s   u n k n o w n   a s   S u b m i t E v e n t ) } \ )   t o   m a i n t a i n   t h e   \ S u b m i t E v e n t \   s i g n a t u r e   o n   o u r   h a n d l e r   f u n c t i o n s . 
- 
- * * C o n s e q u e n c e s : * * 
- -   '  S t a n d a r d i z e s   f o r m   e v e n t   t y p e s   c l o s e r   t o   t h e   D O M   s p e c i f i c a t i o n . 
- -   '  R e s o l v e s   s t r i c t   A s t r o   t y p e - c h e c k i n g   e r r o r s   i n   c r o s s - f r a m e w o r k   s e t u p s . 
- -   L'  R e q u i r e s   a   s l i g h t l y   v e r b o s e   c a s t   a t   t h e   i n l i n e   \ o n S u b m i t \   p r o p   s i t e   w i t h i n   R e a c t   c o m p o n e n t s .  
- 
+### ADR-010: FormEvent Deprecation and SubmitEvent Adoption (2026-05-11)
+
+**Context:**
+- React's synthetic `FormEvent` type was producing TypeScript errors during `astro check` when assigned to a standard DOM `SubmitEvent` handler inside React components embedded in Astro.
+- Explicitly casting or adhering to the DOM `SubmitEvent` ensures better compatibility when moving beyond standard React boundaries or strict type-checking modes.
+
+**Decision:**
+- We are deprecating the use of `React.FormEvent<HTMLFormElement>` in favor of the standard DOM `SubmitEvent` for form submission handlers.
+- In cases where React's `onSubmit` prop strictly expects a `FormEventHandler`, we will cast the synthetic event appropriately (e.g., `onSubmit={(e) => handleSearch(e as unknown as SubmitEvent)}`) to maintain the `SubmitEvent` signature on our handler functions.
+
+**Consequences:**
+- ✅ Standardizes form event types closer to the DOM specification.
+- ✅ Resolves strict Astro type-checking errors in cross-framework setups.
+- ⚠️ Requires a slightly verbose cast at the inline `onSubmit` prop site within React components.
+
+---
+
+### ADR-011: Hybrid Cloud Architecture (Railway + Strapi Cloud) (2026-05-22)
+
+**Context:**
+- The project needs a production-ready backend and a staging/testing environment for the frontend that supports Playwright E2E testing.
+- Strapi Cloud provides the most stable and zero-config environment for the Strapi 5 backend, including automatic Postgres, CDN, and Email setup.
+- Railway is highly cost-effective for testing and supports manual CLI-based deployments that bypass global GitHub hooks, allowing for isolated "staging" pushes.
+
+**Decision:**
+- We are adopting a Hybrid Cloud Architecture:
+    1. **Backend**: Strapi Cloud (Official) for the production backend and database.
+    2. **Frontend**: Railway for staging and E2E testing (via Playwright).
+    3. **Final Production**: LiteSpeed LAMP server (`chipsxp.com`) for the static Astro build.
+
+**Alternatives Considered:**
+- **Full Railway**: Rejected because Strapi 5's Postgres and Media Library configuration is more robust on Strapi's native cloud.
+- **Full Strapi Cloud**: Rejected as it does not natively host non-Strapi frontend projects like Astro in the same project context as easily as Railway.
+
+**Consequences:**
+- ✅ **Stability**: Backend is on optimized infrastructure.
+- ✅ **Testability**: Railway staging allows for full E2E validation before production deployment.
+- ⚠️ **Multi-Platform Management**: Requires managing two sets of environment variables and two different CLI tools (Railway and Strapi).
+
+
+

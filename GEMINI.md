@@ -75,3 +75,18 @@ npm run build         # Build static site
 | `category` | Collection | `/api/categories` | `strapiLoader` (needs `pluralContentType`) |
 | `about` | Single | `/api/about` | `strapiSingleLoader` |
 | `global` | Single | `/api/global` | `strapiSingleLoader` |
+
+---
+
+## Deployment & Staging Guidelines
+
+### Automating Interactive CLI Tools
+- When a CLI tool (e.g., `strapi deploy`) requires interactive input and does not provide a `--force` flag, use a Node.js wrapper script with `child_process.spawn`.
+- The script should listen to `stdout` for prompt markers and write to `stdin` without closing the stream.
+- This is more reliable than shell piping (`echo |`) for tools using complex terminal interfaces.
+
+### Hybrid Cloud Deployment (Railway + Strapi Cloud)
+- **Order of Operations**: Always deploy the backend (Strapi Cloud) first. Obtain the live URL and update the frontend's environment variables (`STRAPI_URL`, etc.) *before* building the frontend.
+- **Build Dependencies**: Astro content loaders often perform network requests during `astro build`. A live backend prevents `generate-content-types-error` during deployment.
+- **Isolated Staging**: Use manual Railway CLI deployments (`railway up`) to test frontend changes on specific staging domains without triggering global production hooks.
+
