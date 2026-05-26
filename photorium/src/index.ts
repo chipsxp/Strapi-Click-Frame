@@ -42,7 +42,7 @@ export default {
       });
 
       if (publicRole) {
-        const controllers = ['photo', 'category', 'tag', 'reaction', 'comment', 'global', 'about', 'donation', 'community-stat'];
+        const controllers = ['photo', 'category', 'tag', 'reaction', 'comment', 'global', 'about', 'donation', 'community-stat', 'profile-config'];
         const publicPermissionsToCreate = [];
 
         for (const controller of controllers) {
