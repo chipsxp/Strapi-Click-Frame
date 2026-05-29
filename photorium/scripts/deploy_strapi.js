@@ -12,8 +12,13 @@ child.stdout.on('data', (data) => {
   const output = data.toString();
   
   // Log the output so we can see what the CLI is asking
-  console.log('STDOUT:', output);
+  process.stdout.write('STDOUT: ' + output);
   
+  // 0. Handle Login prompt
+  if (output.includes('Would you like to login?')) {
+    child.stdin.write('y\n');
+  }
+
   // 1. Handle the Project Name prompt
   if (output.includes('How would you like to name your project?')) {
     child.stdin.write('photorium\n');
@@ -33,11 +38,16 @@ child.stdout.on('data', (data) => {
   if (output.includes('Do you want to proceed with deployment')) {
     child.stdin.write('y\n');
   }
+
+  // 5. Handle generic "Press any key to continue" or similar
+  if (output.includes('Press Enter to open the browser')) {
+    child.stdin.write('\n');
+  }
 });
 
 child.stderr.on('data', (data) => {
-  // Log any errors or secondary output from the CLI
-  console.error('STDERR:', data.toString());
+  const output = data.toString();
+  process.stderr.write('STDERR: ' + output);
 });
 
 child.on('close', (code) => {

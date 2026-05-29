@@ -77,7 +77,8 @@ export default function PhotoGrid({ photos }: Props) {
     if (imgData) {
       const url = imgData.url || imgData.data?.attributes?.url;
       if (url) {
-        return url.startsWith('http') ? url : `http://localhost:1337${url}`;
+        const baseUrl = import.meta.env.PUBLIC_STRAPI_URL || import.meta.env.STRAPI_URL || 'http://127.0.0.1:1337';
+        return url.startsWith('http') ? url : `${baseUrl}${url}`;
       }
     }
     return '/favicon.png';

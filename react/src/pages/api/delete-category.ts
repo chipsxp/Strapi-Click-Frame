@@ -27,7 +27,7 @@ export const DELETE: APIRoute = async ({ request, cookies, locals }) => {
       return new Response(JSON.stringify({ error: 'Document ID is required' }), { status: 400 });
     }
 
-    const strapiUrl = import.meta.env.STRAPI_URL || 'http://localhost:1337';
+    const strapiUrl = import.meta.env.STRAPI_URL || 'http://127.0.0.1:1337';
 
     // 1. Verify permissions (Owner or Editor/Admin)
     const checkRes = await fetch(`${strapiUrl}/api/categories/${documentId}?populate=user`, {

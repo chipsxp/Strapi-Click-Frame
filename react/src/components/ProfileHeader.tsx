@@ -16,7 +16,7 @@ export default function ProfileHeader({
   coverImages = [],
   currentPath = "/",
 }: ProfileHeaderProps) {
-  const strapiUrl = "http://127.0.0.1:1337"; // Match environment default
+  const strapiUrl = import.meta.env.PUBLIC_STRAPI_URL || import.meta.env.STRAPI_URL || "http://127.0.0.1:1337"; // Match environment default
   const coverUrl =
     coverImages.length > 0
       ? coverImages[0].startsWith("http")

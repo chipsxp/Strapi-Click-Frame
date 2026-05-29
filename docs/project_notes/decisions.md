@@ -1,4 +1,4 @@
-﻿# Architectural Decisions
+# Architectural Decisions
 
 Architectural Decision Records (ADRs) for the Strapi-Click-Frame project. Add a new entry for every significant technical choice. Never delete old entries â€” mark them superseded instead.
 
@@ -220,6 +220,44 @@ Architectural Decision Records (ADRs) for the Strapi-Click-Frame project. Add a 
 - ✅ **Stability**: Backend is on optimized infrastructure.
 - ✅ **Testability**: Railway staging allows for full E2E validation before production deployment.
 - ⚠️ **Multi-Platform Management**: Requires managing two sets of environment variables and two different CLI tools (Railway and Strapi).
+
+---
+
+### ADR-012: Build-Time Content Sync Resilience (2026-05-25)
+
+**Context:**
+- Astro content loaders fetch data from Strapi Cloud during the build phase.
+- Network latency or transient CMS downtime can cause build failures on Railway if the fetch times out (default 10s).
+
+**Decision:**
+- Implement a `fetchWithRetry` utility for all custom content loaders.
+- Set a 30-second timeout per attempt and perform up to 3 retries with exponential backoff.
+
+**Consequences:**
+- ✅ **Build Stability**: Significantly reduces "flaky" builds due to transient network issues.
+- ✅ **Hybrid Cloud Support**: Better handles the inherent latency of cross-provider communication (Railway <-> Strapi Cloud).
+- ⚠️ **Build Duration**: Failed builds will take longer to fail (up to ~2 minutes) due to retries and backoff.
+
+---
+
+### ADR-014: Triple-Clear Logout and Aggressive Cache-Control (2026-05-25)
+
+**Context:**
+- Users reported "sticky" sessions where they remained logged in even after clicking Logout.
+- This is often caused by browsers or proxy layers (like Cloudflare or Railway's edge) caching the `strapi_jwt` cookie or the HTML of the dashboard page.
+
+**Decision:**
+- **Triple-Clear Logout**: The `/api/logout` route now:
+    1. Calls `cookies.delete()` with synchronized attributes (path, secure, sameSite).
+    2. Explicitly sets the cookie to an empty string with `maxAge: 0` and an expired date in the past.
+    3. Returns a `302 Redirect` to ensure the browser clears its internal state and performs a fresh navigation.
+- **Direct Navigation**: Switched from `fetch`-based logout in the dashboard to a direct `<a>` link to ensure a full browser lifecycle.
+- **Aggressive Cache-Control**: Updated `middleware.ts` to inject `Cache-Control: no-store, no-cache, must-revalidate, max-age=0` and `Pragma: no-cache` on ALL responses.
+
+**Consequences:**
+- ✅ **Session Integrity**: Guarantees that logout is immediate and consistent across all browsers.
+- ✅ **Dynamic Accuracy**: Ensures that users always see the correct "Logged In" or "Logged Out" state without stale cache interference.
+- ⚠️ **Performance**: Disables browser caching for the entire application; acceptable for Photorium's highly dynamic community nature, but may increase server load slightly.
 
 
 

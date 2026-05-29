@@ -9,7 +9,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
   try {
     const { photoId, type } = await request.json();
-    const strapiUrl = import.meta.env.STRAPI_URL || 'http://localhost:1337';
+    const strapiUrl = import.meta.env.STRAPI_URL || 'http://127.0.0.1:1337';
 
     // Get user info to pass their ID (Strapi reactions usually need the user ID)
     // We could also let Strapi handle this via the JWT in the controller, 

@@ -10,7 +10,7 @@ export const GET: APIRoute = async ({ cookies, locals }) => {
   }
 
   try {
-    const strapiUrl = import.meta.env.STRAPI_URL || 'http://localhost:1337';
+    const strapiUrl = import.meta.env.STRAPI_URL || 'http://127.0.0.1:1337';
 
     // 1. Get the list of users this user follows
     const following = user.following || [];

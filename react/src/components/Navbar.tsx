@@ -15,7 +15,7 @@ export default function Navbar({ user }: Props) {
 
     const checkNewArt = async () => {
       try {
-        const strapiUrl = "http://127.0.0.1:1337"; // Using IP to avoid resolution issues
+        const strapiUrl = import.meta.env.PUBLIC_STRAPI_URL || import.meta.env.STRAPI_URL || "http://127.0.0.1:1337"; // Using IP to avoid resolution issues
         const followingIds = user.following?.map((u: any) => u.id) || [];
         
         if (followingIds.length === 0) return;

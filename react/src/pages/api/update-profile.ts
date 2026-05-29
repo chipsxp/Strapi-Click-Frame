@@ -12,7 +12,7 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
     const body = await request.json();
     const { bio, nickname, avatar, username } = body;
 
-    const strapiUrl = import.meta.env.STRAPI_URL || 'http://localhost:1337';
+    const strapiUrl = import.meta.env.STRAPI_URL || 'http://127.0.0.1:1337';
 
     // Update the User entry in Strapi
     // Strapi 5 Users-Permissions endpoint for updating current user

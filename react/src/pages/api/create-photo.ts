@@ -12,7 +12,7 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
     const body = await request.json();
     const { title, description, image, category: categoryInput } = body;
 
-    const strapiUrl = import.meta.env.STRAPI_URL || 'http://localhost:1337';
+    const strapiUrl = import.meta.env.STRAPI_URL || 'http://127.0.0.1:1337';
 
     // 1. Resolve Categories (Split by comma)
     const categoryNames = typeof categoryInput === 'string' 

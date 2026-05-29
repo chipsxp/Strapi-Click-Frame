@@ -9,7 +9,7 @@ export const DELETE: APIRoute = async ({ params, cookies }) => {
   }
 
   try {
-    const strapiUrl = import.meta.env.STRAPI_URL || 'http://localhost:1337';
+    const strapiUrl = import.meta.env.STRAPI_URL || 'http://127.0.0.1:1337';
 
     // Verify if the user is an Editor or Admin
     const userRes = await fetch(`${strapiUrl}/api/users/me?populate=role`, {

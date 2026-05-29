@@ -13,7 +13,7 @@ if (!confirmationToken) {
 } else {
   try {
     // Perform verification on the SERVER side
-    // Using strapiUrl which is http://localhost:1337 (internal network)
+    // Using strapiUrl which is http://127.0.0.1:1337 (internal network)
     const res = await fetch(`${strapiUrl}/api/auth/email-confirmation?confirmation=${confirmationToken}`, {
         method: 'GET',
         redirect: 'manual' 

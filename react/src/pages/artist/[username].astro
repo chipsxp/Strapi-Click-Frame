@@ -31,7 +31,7 @@ const photosJson = await photosRes.json();
 const photos: StrapiPhoto[] = photosJson.data || [];
 
 const resolveImageUrl = (url: string | undefined | null) => {
-  if (!url) return '/favicon.png';
+  if (!url) return '/favicon.svg';
   return url.startsWith('http') ? url : `${strapiUrl}${url}`;
 };
 ---

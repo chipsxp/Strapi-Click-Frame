@@ -14,7 +14,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       return new Response(JSON.stringify({ error: 'Comment must be between 1 and 500 characters.' }), { status: 400 });
     }
 
-    const strapiUrl = import.meta.env.STRAPI_URL || 'http://localhost:1337';
+    const strapiUrl = import.meta.env.STRAPI_URL || 'http://127.0.0.1:1337';
 
     // Get user info to associate the comment with the correct author
     const userRes = await fetch(`${strapiUrl}/api/users/me`, {

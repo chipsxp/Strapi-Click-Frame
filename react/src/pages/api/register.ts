@@ -12,7 +12,7 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    const strapiUrl = import.meta.env.STRAPI_URL || 'http://localhost:1337';
+    const strapiUrl = import.meta.env.STRAPI_URL || 'http://127.0.0.1:1337';
     
     // Call Strapi registration endpoint
     const response = await fetch(`${strapiUrl}/api/auth/local/register`, {

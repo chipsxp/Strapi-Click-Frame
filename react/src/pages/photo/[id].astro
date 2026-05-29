@@ -7,7 +7,7 @@ import type { StrapiPhoto } from '../../types/strapi';
 const { id } = Astro.params;
 const { user } = Astro.locals;
 
-const strapiUrl = import.meta.env.STRAPI_URL || 'http://localhost:1337';
+const strapiUrl = import.meta.env.STRAPI_URL || 'http://127.0.0.1:1337';
 
 // Strapi 5 requires indexed query parameters for complex population via REST
 // Do not mix '*' with nested populate paths
@@ -48,10 +48,11 @@ const getImageUrl = (photo: StrapiPhoto) => {
   if (imgData) {
     const url = imgData.url || imgData.data?.attributes?.url;
     if (url) {
-      return url.startsWith('http') ? url : `http://localhost:1337${url}`;
+      const baseUrl = import.meta.env.PUBLIC_STRAPI_URL || import.meta.env.STRAPI_URL || 'http://127.0.0.1:1337';
+      return url.startsWith('http') ? url : `${baseUrl}${url}`;
     }
   }
-  return '/favicon.png';
+  return '/favicon.svg';
 };
 
 const imageUrl = getImageUrl(photo);
