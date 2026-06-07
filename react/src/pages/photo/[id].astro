@@ -2,6 +2,7 @@
 import ClientLayout from '../../layouts/ClientLayout.astro';
 import SocialShare from '../../components/SocialShare.astro';
 import CommentSection from '../../components/CommentSection';
+import MunchDisplay from '../../components/MunchDisplay';
 import type { StrapiPhoto } from '../../types/strapi';
 
 const { id } = Astro.params;
@@ -48,21 +49,26 @@ const getImageUrl = (photo: StrapiPhoto) => {
   if (imgData) {
     const url = imgData.url || imgData.data?.attributes?.url;
     if (url) {
-      const baseUrl = import.meta.env.PUBLIC_STRAPI_URL || import.meta.env.STRAPI_URL || 'http://127.0.0.1:1337';
-      return url.startsWith('http') ? url : `${baseUrl}${url}`;
+      const baseUrl = import.meta.env.PUBLIC_STRAPI_URL || import.meta.env.STRAPI_URL || '';
+      return url.startsWith('http') ? url : (baseUrl ? `${baseUrl}${url}` : url);
     }
   }
   return '/favicon.svg';
 };
 
 const imageUrl = getImageUrl(photo);
-const currentUrl = Astro.url.href;
+
+// FIX: Ensure share URL uses the public domain, not localhost
+const publicUrl = import.meta.env.PUBLIC_SITE_URL || 'https://photorium-production.up.railway.app';
+const currentUrl = `${publicUrl}/photo/${photo.documentId}`;
 
 const formattedDate = new Date(photo.createdAt || Date.now()).toLocaleDateString('en-US', {
   year: 'numeric',
   month: 'long',
   day: 'numeric'
 });
+
+const isOwner = user?.id === photo.author?.id;
 ---
 
 <ClientLayout 
@@ -83,12 +89,13 @@ const formattedDate = new Date(photo.createdAt || Date.now()).toLocaleDateString
             <p class="author">By <a href={`/artist/${photo.author?.username}`} class="author-link"><strong>{photo.author?.username || 'Anonymous'}</strong></a></p>
           </div>
           <div class="munch-stats">
-            <div class="munch-badge classic" title="Classic Munches">
-              🍟 <span>{photo.classic_munch_count || 0}</span>
-            </div>
-            <div class="munch-badge cheddar" title="Cheddar Munches">
-              🧀 <span>{photo.cheddar_munch_count || 0}</span>
-            </div>
+            <MunchDisplay 
+              client:load 
+              photoId={photo.documentId} 
+              initialClassicCount={photo.classic_munch_count || 0} 
+              initialCheddarCount={photo.cheddar_munch_count || 0}
+              isOwner={isOwner}
+            />
           </div>
         </div>
         

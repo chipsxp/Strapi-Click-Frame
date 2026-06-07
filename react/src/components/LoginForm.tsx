@@ -62,25 +62,27 @@ export default function LoginForm() {
       <form onSubmit={handleSubmit}>
         <div className={styles.field}>
           <label htmlFor="identifier">Artist Name or Email</label>
-          <input 
-            type="text" 
-            id="identifier" 
+          <input
+            type="text"
+            id="identifier"
             value={identifier}
             onChange={(e) => setIdentifier(e.target.value)}
-            required 
-            placeholder="e.g. potato_king" 
+            required
+            placeholder="e.g. potato_king"
+            autoComplete="username"
           />
         </div>
 
         <div className={styles.field}>
           <label htmlFor="password">Secret Recipe (Password)</label>
-          <input 
-            type="password" 
-            id="password" 
+          <input
+            type="password"
+            id="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            required 
-            placeholder="••••••••" 
+            required
+            placeholder="••••••••"
+            autoComplete="current-password"
           />
         </div>
 

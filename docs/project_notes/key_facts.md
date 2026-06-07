@@ -88,7 +88,7 @@ Non-sensitive project configuration and constants. **Never store passwords, API 
 
 ## User Roles & Permissions
 
-- **Super Admin**: Seeded global administrator with full control over the system.
+- **Super Admin**: Seeded global administrator with full control over the system. The original Super Admin account email is `chips_xp@yahoo.com` (created during initial setup), not `service@chipsxp.com`.
 - **Author Role**: Individual login accounts for content creators.
 - **Privacy**: Each Author has control over their own dashboard, individual media, and metadata.
 

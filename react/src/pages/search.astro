@@ -17,7 +17,10 @@ if (query.trim()) {
   params.append('populate', '*');
   params.append('filters[$or][0][title][$containsi]', query);
   params.append('filters[$or][1][description][$containsi]', query);
-  params.append('filters[$or][2][category][name][$containsi]', query);
+  params.append('filters[$or][2][categories][name][$containsi]', query);
+  params.append('filters[$or][3][author][username][$containsi]', query);
+  params.append('filters[$or][4][tags][name][$containsi]', query);
+  params.append('filters[$or][5][image][name][$containsi]', query);
   
   const searchUrl = `${strapiUrl}/api/photos?${params.toString()}`;
   const res = await fetch(searchUrl);

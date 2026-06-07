@@ -44,3 +44,21 @@ Finally, we polished the developer experience by installing `@types/node` to res
 Today, the foundation is solid. The Strapi backend automatically configures its own permissions on startup. The Astro frontend is strictly typed, error-free, and dynamically syncing with our new photo-centric models. ImageKit is fully wired up, ready to serve optimized photography to the world.
 
 Next up: Designing the visual grid, implementing author-specific dashboards, and bringing the Flickr-style aesthetic to life.
+
+## June 4, 2026 - Evening Session (Pre-Break)
+
+### Planned UI Fixes for Next Session
+1. **Hash Brown Hub Dark Mode Visibility Fix:**
+   - **Issue:** Text in the `.stat-card` elements on the Hash Brown Hub page is light gray against a stark white background in dark mode, making it unreadable.
+   - **Root Cause:** The `hash-brown-hub.astro` file uses `background: var(--bg-secondary, #fff);` for `.stat-card`. Since `--bg-secondary` is not defined in `ClientLayout.astro`, it falls back to `#fff` (white) regardless of the theme, while the text color properly switches to light gray (`var(--text-primary)` in dark mode).
+   - **Solution:** Change the background to `background: var(--card-bg);`. This will correctly use the global theme variables (`#ffffff` in light mode, `#1e1e1e` in dark mode).
+
+2. **"Support the Hub" Button Redesign:**
+   - **Issue:** The button appears as a default gray, small button instead of an attractive call-to-action.
+   - **Root Cause:** The CSS class `.donate-btn` is defined inside the `<style>` block of `hash-brown-hub.astro`. By default, Astro scopes these styles, meaning they are NOT passed down to the React component (`<SupportHubButton />`) that actually renders the button.
+   - **Solution:** 
+     - Create a dedicated CSS module (`SupportHubButton.module.css`).
+     - Move the `.donate-btn` styles into the module.
+     - Enhance the styling to make it larger and more attractive (e.g., using a `linear-gradient` from `#ffc107` to `#ff9800`, larger padding, rounded corners, drop shadows, and a subtle hover scale animation).
+     - Update the `SupportHubButton.tsx` to import and apply these modular styles.
+     - Remove the obsolete scoped `.donate-btn` styles from `hash-brown-hub.astro`.

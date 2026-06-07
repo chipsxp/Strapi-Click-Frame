@@ -47,6 +47,7 @@ export interface StrapiUser {
   avatar?: StrapiMedia;
   cheddar_munch_balance?: number;
   classic_munch_given_total?: number;
+  last_classic_munch_at?: string;
   following?: StrapiUser[];
   followers?: StrapiUser[];
   role?: {

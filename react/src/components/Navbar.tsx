@@ -14,20 +14,21 @@ export default function Navbar({ user }: Props) {
     if (!user || !user.following || user.following.length === 0) return;
 
     const checkNewArt = async () => {
+      // API SAVER: Don't poll if tab is hidden
+      if (document.hidden) return;
+
+      // If we are on the dashboard, we are viewing the feed. 
+      // Update the timestamp and hide the dot.
+      if (window.location.pathname === '/dashboard') {
+        localStorage.setItem('lastViewedFollowingFeed', new Date().toISOString());
+        setHasNewArt(false);
+        return;
+      }
+
       try {
-        const strapiUrl = import.meta.env.PUBLIC_STRAPI_URL || import.meta.env.STRAPI_URL || "http://127.0.0.1:1337"; // Using IP to avoid resolution issues
-        const followingIds = user.following?.map((u: any) => u.id) || [];
-        
-        if (followingIds.length === 0) return;
+        if (!user.following || user.following.length === 0) return;
 
-        const params = new URLSearchParams();
-        followingIds.forEach((id: number, index: number) => {
-          params.append(`filters[author][id][$in][${index}]`, id.toString());
-        });
-        params.append('sort', 'createdAt:desc');
-        params.append('pagination[limit]', '1');
-
-        const res = await fetch(`${strapiUrl}/api/photos?${params.toString()}`);
+        const res = await fetch(`/api/notifications`);
         if (!res.ok) return;
 
         const json = await res.json();
@@ -45,9 +46,18 @@ export default function Navbar({ user }: Props) {
     };
 
     checkNewArt();
-    // Check every 5 minutes
-    const interval = setInterval(checkNewArt, 5 * 60 * 1000);
-    return () => clearInterval(interval);
+    // API SAVER: Increased to 15 minutes and added visibility listener
+    const interval = setInterval(checkNewArt, 15 * 60 * 1000);
+    
+    const handleVisibility = () => {
+      if (!document.hidden) checkNewArt();
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
   }, [user]);
 
   const handleSearch = (e: SubmitEvent) => {
@@ -120,7 +130,14 @@ export default function Navbar({ user }: Props) {
         </button>
         <div className={styles.notificationWrapper}>
           {user ? (
-            <a href="/dashboard" className={styles.navLink}>
+            <a 
+              href="/dashboard" 
+              className={styles.navLink}
+              onClick={() => {
+                localStorage.setItem('lastViewedFollowingFeed', new Date().toISOString());
+                setHasNewArt(false);
+              }}
+            >
               Dashboard
             </a>
           ) : (
@@ -142,3 +159,4 @@ export default function Navbar({ user }: Props) {
     </nav>
   );
 }
+

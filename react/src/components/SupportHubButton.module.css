@@ -1,0 +1,26 @@
+.donateBtn {
+  width: 100%;
+  background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+  color: #3d2b1f;
+  border: none;
+  padding: 1.25rem 2rem;
+  border-radius: 1rem;
+  font-weight: 800;
+  font-size: 1.2rem;
+  margin-top: 2.5rem;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+  box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.donateBtn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
+}
+
+.donateBtn:active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: 0 2px 10px rgba(255, 152, 0, 0.3);
+}

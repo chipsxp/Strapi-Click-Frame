@@ -223,3 +223,12 @@ Track bugs chronologically. Keep entries brief. Remove entries older than 6 mont
 - **Root Cause**: The integrated terminal inherited stale `VSCODE_GIT_*` and askpass environment variables from VS Code. Git then tried to use a dead VS Code IPC pipe for credentials instead of a persistent credential helper.
 - **Solution**: Configured Git Credential Manager globally via `git credential-manager configure` and cleared the stale `VSCODE_GIT_IPC_HANDLE`, `GIT_ASKPASS`, `SSH_ASKPASS`, and `VSCODE_GIT_ASKPASS*` environment variables before running Git.
 - **Prevention**: Prefer a fresh VS Code terminal after opening a worktree, and use a wrapper like `gitfixauth.js` to run Git commands with VS Code auth variables scrubbed when the terminal session looks stale.
+
+---
+
+### 2026-06-01 - PayPal Buttons Missing (400 Bad Request)
+
+- **Issue**: PayPal buttons were not rendering on the deployed Railway site. The network tab showed a `400 Bad Request` for `https://www.paypal.com/sdk/js?components=buttons&currency=USD`.
+- **Root Cause**: The URL was missing the required `client-id` parameter. This occurred because the `PUBLIC_PAYPAL_CLIENT_ID` environment variable was not set in the Railway environment, causing the client-side component to pass an empty string to the SDK script provider.
+- **Solution**: Set the `PUBLIC_PAYPAL_CLIENT_ID` variable on the Railway service and triggered a redeployment via `railway up`.
+- **Prevention**: Whenever adding client-side integrations requiring public API keys, ensure the corresponding environment variables are mirrored from `.env` to all staging and production environments.

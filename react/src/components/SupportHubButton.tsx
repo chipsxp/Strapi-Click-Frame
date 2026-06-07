@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import SupportHubModal from './SupportHubModal';
+import styles from './SupportHubButton.module.css';
 
 interface SupportHubButtonProps {
   paypalClientId: string;
@@ -12,8 +13,8 @@ export default function SupportHubButton({ paypalClientId, isLoggedIn, defaultNi
 
   return (
     <>
-      <button 
-        className="donate-btn" 
+      <button
+        className={styles.donateBtn}
         onClick={() => setIsModalOpen(true)}
       >
         Support the Hub
