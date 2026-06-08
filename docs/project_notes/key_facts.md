@@ -107,7 +107,7 @@ Non-sensitive project configuration and constants. **Never store passwords, API 
 
 - **Strapi Cloud (Backend)**: `https://lively-advice-e5a07e92e2.strapiapp.com`
 - **Strapi Cloud Admin**: `https://lively-advice-e5a07e92e2.strapiapp.com/admin`
-- **Railway (Frontend Staging)**: `https://photorium-production.up.railway.app`
+- **Railway (Frontend Staging)**: `https://crunch.chipsxp.com`
 - **Production Domain**: `https://chipsxp.com` (Target)
 
 ---

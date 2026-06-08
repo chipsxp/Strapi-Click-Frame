@@ -657,6 +657,52 @@ export interface ApiGlobalGlobal extends Struct.SingleTypeSchema {
   };
 }
 
+export interface ApiNotificationNotification
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'notifications';
+  info: {
+    description: 'User notifications for comments and replies';
+    displayName: 'Notification';
+    pluralName: 'notifications';
+    singularName: 'notification';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    comment: Schema.Attribute.Relation<'manyToOne', 'api::comment.comment'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    is_read: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<false>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::notification.notification'
+    > &
+      Schema.Attribute.Private;
+    photo: Schema.Attribute.Relation<'manyToOne', 'api::photo.photo'>;
+    publishedAt: Schema.Attribute.DateTime;
+    recipient: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    sender: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    type: Schema.Attribute.Enumeration<
+      ['comment_on_photo', 'reply_to_comment']
+    > &
+      Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiPhotoPhoto extends Struct.CollectionTypeSchema {
   collectionName: 'photos';
   info: {
@@ -1313,6 +1359,14 @@ export interface PluginUsersPermissionsUser
       'oneToMany',
       'api::category.category'
     >;
+    cheddar_given_total: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<0>;
     cheddar_munch_balance: Schema.Attribute.Integer &
       Schema.Attribute.SetMinMax<
         {
@@ -1362,6 +1416,14 @@ export interface PluginUsersPermissionsUser
       Schema.Attribute.SetMinMaxLength<{
         maxLength: 50;
       }>;
+    notifications_received: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::notification.notification'
+    >;
+    notifications_sent: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::notification.notification'
+    >;
     password: Schema.Attribute.Password &
       Schema.Attribute.Private &
       Schema.Attribute.SetMinMaxLength<{
@@ -1412,6 +1474,7 @@ declare module '@strapi/strapi' {
       'api::comment.comment': ApiCommentComment;
       'api::donation.donation': ApiDonationDonation;
       'api::global.global': ApiGlobalGlobal;
+      'api::notification.notification': ApiNotificationNotification;
       'api::photo.photo': ApiPhotoPhoto;
       'api::profile-config.profile-config': ApiProfileConfigProfileConfig;
       'api::reaction.reaction': ApiReactionReaction;

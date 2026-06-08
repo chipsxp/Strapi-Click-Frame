@@ -62,3 +62,19 @@ Next up: Designing the visual grid, implementing author-specific dashboards, and
      - Enhance the styling to make it larger and more attractive (e.g., using a `linear-gradient` from `#ffc107` to `#ff9800`, larger padding, rounded corners, drop shadows, and a subtle hover scale animation).
      - Update the `SupportHubButton.tsx` to import and apply these modular styles.
      - Remove the obsolete scoped `.donate-btn` styles from `hash-brown-hub.astro`.
+
+
+
+## June 6, 2026 - PayPal and Performance Success
+
+Today was a major milestone. We successfully verified the PayPal live integration and confirmed that new user signups are working flawlessly. On the UI front, we addressed the dark mode visibility issues on the Hash Brown Hub page and gave the 'Support the Hub' button a modern, modular redesign. Finally, a comprehensive stress test and performance audit confirmed that the ImageKit/Strapi integration is stable and efficient, with no significant memory leaks or bottlenecks. We are now ready to tackle the final set of user-identified problems before the ultimate Railway deployment.
+
+
+
+## June 6, 2026 - Improving User Feedback and Error Handling
+
+Following the successful stress tests, we addressed two key UX issues. We refactored the email confirmation page to detect reused tokens and provide a helpful 'already verified' message instead of a generic server error. We also replaced the default 404 page with a custom-designed Photorium themed page, ensuring users always have a clear path back to the home gallery even if they get lost. These polish items significantly improve the professional feel of the platform as we move toward the final production release.
+
+
+
+

@@ -77,7 +77,7 @@ export default function MunchDisplay({ photoId, initialClassicCount, initialChed
       />
 
       <button 
-        className={`${styles.munchBtn} ${styles.classic}`}
+        className={`${styles.munchBtn} ${styles.light} ${styles.classic}`}
         onClick={() => handleMunch('classic')}
         title={isOwner ? "Your classic munches" : "Give a Classic Munch"}
         style={{ cursor: isOwner ? 'default' : 'pointer' }}
@@ -87,7 +87,7 @@ export default function MunchDisplay({ photoId, initialClassicCount, initialChed
       </button>
       
       <button 
-        className={`${styles.munchBtn} ${styles.cheddar}`}
+        className={`${styles.munchBtn} ${styles.light} ${styles.cheddar}`}
         onClick={() => handleMunch('cheddar')}
         title={isOwner ? "Your cheddar munches" : "Give a Cheddar Munch"}
         style={{ cursor: isOwner ? 'default' : 'pointer' }}

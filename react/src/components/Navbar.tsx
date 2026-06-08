@@ -26,20 +26,49 @@ export default function Navbar({ user }: Props) {
       }
 
       try {
-        if (!user.following || user.following.length === 0) return;
+        let hasNewComments = false;
+        let hasNewPhotos = false;
 
-        const res = await fetch(`/api/notifications`);
-        if (!res.ok) return;
+        // 1. Check for comment notifications
+        const notifRes = await fetch(`/api/comment-notifications`);
+        let dismissedIds: string[] = [];
+        try {
+          const stored = localStorage.getItem("dismissed_sizzles");
+          if (stored) dismissedIds = JSON.parse(stored);
+        } catch(e) {}
 
-        const json = await res.json();
-        const latestPhoto: StrapiPhoto = json.data?.[0];
-
-        if (latestPhoto) {
-          const lastViewed = localStorage.getItem('lastViewedFollowingFeed');
-          if (!lastViewed || new Date(latestPhoto.createdAt) > new Date(lastViewed)) {
-            setHasNewArt(true);
+        if (notifRes.ok) {
+          const notifJson = await notifRes.json();
+          if (notifJson.data && notifJson.data.length > 0) {
+            // Check if ANY of these are not dismissed
+            const hasUndismissedComments = notifJson.data.some((n: any) => !dismissedIds.includes(`comment_${n.documentId}`));
+            if (hasUndismissedComments) hasNewComments = true;
           }
         }
+
+        // 2. Check for new art from followed users
+        if (user.following && user.following.length > 0) {
+          const res = await fetch(`/api/notifications`);
+          if (res.ok) {
+            const json = await res.json();
+            const latestPhoto: StrapiPhoto = json.data?.[0];
+
+            if (latestPhoto) {
+              const lastViewed = localStorage.getItem('lastViewedFollowingFeed');
+              const isNewer = !lastViewed || new Date(latestPhoto.createdAt) > new Date(lastViewed);
+              const isNotDismissed = !dismissedIds.includes(`photo_${latestPhoto.documentId}`);
+              
+              if (isNewer && isNotDismissed) {
+                hasNewPhotos = true;
+              }
+            }
+          }
+        }
+
+        if (hasNewComments || hasNewPhotos) {
+          setHasNewArt(true);
+        }
+
       } catch (err) {
         console.error("Failed to check for new art:", err);
       }
@@ -90,12 +119,12 @@ export default function Navbar({ user }: Props) {
             ></span>
             {user && (
               <span className={styles.chipCount}>
-                {user.cheddar_munch_balance || 0}
+                {user.cheddar_given_total || 0}
               </span>
             )}
             <span
               className={styles.cheddarChip}
-              title="Cheddar Chips Available"
+              title="Total Cheddar Given"
             ></span>
           </div>
           <span className={styles.logotext}>Photorium</span>

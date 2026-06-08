@@ -48,6 +48,7 @@ exports/
 .strapi-updater.json
 .strapi-cloud.json
 gha-creds-*.json
+.htaccess
 
 # AI Assistants & Local Tools (EXCLUDE FROM REPO)
 .claude/

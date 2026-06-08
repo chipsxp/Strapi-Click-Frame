@@ -806,18 +806,28 @@ const resolveImageUrl = (url: string | undefined | null) => {
     }
 
     feedEl.style.display = "block";
-    listEl.innerHTML = notifications.map(notif => `
-      <div class="notification-item" data-id="${notif.documentId}">
-        <a href="/photo/${notif.documentId}" class="notif-link">
+    listEl.innerHTML = notifications.map(notif => {
+      let message = `<strong>${notif.authorName}</strong> tossed <strong>${notif.title}</strong> into the fryer!`;
+      if (notif.type === 'comment') {
+        if (notif.notifType === 'reply_to_comment') {
+          message = `<strong>${notif.authorName}</strong> replied to your comment on <strong>${notif.title}</strong>!`;
+        } else {
+          message = `<strong>${notif.authorName}</strong> left a comment on <strong>${notif.title}</strong>!`;
+        }
+      }
+
+      return `
+      <div class="notification-item" data-id="${notif.id}">
+        <a href="${notif.url}" class="notif-link" data-notifid="${notif.documentId}" data-notiftype="${notif.type}">
           <img src="${notif.authorAvatar}" class="notif-avatar" alt="${notif.authorName}" />
           <div class="notif-content">
-            <span class="notif-text"><strong>${notif.authorName}</strong> tossed <strong>${notif.title}</strong> into the fryer!</span>
+            <span class="notif-text">${message}</span>
             <span class="notif-meta">${formatTime(notif.createdAt)}</span>
           </div>
         </a>
         <button class="notif-dismiss" title="Dismiss">×</button>
       </div>
-    `).join('');
+    `}).join('');
 
     // Add dismiss listeners
     listEl.querySelectorAll(".notif-dismiss").forEach(btn => {
@@ -832,8 +842,20 @@ const resolveImageUrl = (url: string | undefined | null) => {
             localStorage.setItem("dismissed_sizzles", JSON.stringify(dismissedIds));
           } catch(e) {}
         }
-        notifications = notifications.filter(n => n.documentId !== id);
+        notifications = notifications.filter(n => n.id !== id);
         renderNotifications();
+      });
+    });
+
+    // Add click listeners to mark comments as read
+    listEl.querySelectorAll(".notif-link").forEach(link => {
+      link.addEventListener("click", async (e) => {
+        const notifType = (e.currentTarget as HTMLElement).dataset.notiftype;
+        const notifDocId = (e.currentTarget as HTMLElement).dataset.notifid;
+        if (notifType === 'comment' && notifDocId) {
+          // Fire and forget fetch to mark as read
+          fetch(`/api/mark-notification-read?id=${notifDocId}`, { method: 'POST' }).catch(() => {});
+        }
       });
     });
   };
@@ -852,17 +874,24 @@ const resolveImageUrl = (url: string | undefined | null) => {
     }
 
     try {
-      const res = await fetch("/api/notifications");
-      if (!res.ok) return;
-      const { data } = await res.json();
+      const [photoRes, commentRes] = await Promise.all([
+        fetch("/api/notifications"),
+        fetch("/api/comment-notifications")
+      ]);
+
+      const photoData = photoRes.ok ? (await photoRes.json()).data : [];
+      const commentData = commentRes.ok ? (await commentRes.json()).data : [];
       
-      if (!data || data.length === 0) return;
+      if ((!photoData || photoData.length === 0) && (!commentData || commentData.length === 0)) return;
 
       const strapiUrl = ""; // Fallback removed to avoid localhost issues in production
 
-      const newItems = data.map((photo: any) => ({
+      const newPhotos = (photoData || []).map((photo: any) => ({
         documentId: photo.documentId,
+        id: `photo_${photo.documentId}`, // Unique ID for feed
+        type: 'photo',
         title: photo.title,
+        url: `/photo/${photo.documentId}`,
         authorName: photo.author?.username || "An artist",
         authorAvatar: photo.author?.avatar?.url 
           ? (photo.author.avatar.url.startsWith("http") ? photo.author.avatar.url : (strapiUrl ? `${strapiUrl}${photo.author.avatar.url}` : photo.author.avatar.url))
@@ -870,11 +899,29 @@ const resolveImageUrl = (url: string | undefined | null) => {
         createdAt: photo.createdAt
       }));
 
-      // Merge and unique by documentId, keeping newest, and filter out dismissed
-      const seenIds = new Set(notifications.map(n => n.documentId));
-      const freshItems = newItems.filter((n: any) => !seenIds.has(n.documentId) && !dismissedIds.includes(n.documentId));
+      const newComments = (commentData || []).map((notif: any) => ({
+        documentId: notif.documentId,
+        id: `comment_${notif.documentId}`, // Unique ID for feed
+        type: 'comment',
+        title: notif.photo?.title || "your photo",
+        url: `/photo/${notif.photo?.documentId || ''}`,
+        authorName: notif.sender?.username || "Someone",
+        authorAvatar: notif.sender?.avatar?.url 
+          ? (notif.sender.avatar.url.startsWith("http") ? notif.sender.avatar.url : (strapiUrl ? `${strapiUrl}${notif.sender.avatar.url}` : notif.sender.avatar.url))
+          : "/favicon.png",
+        createdAt: notif.createdAt,
+        notifType: notif.type
+      }));
+
+      const allNewItems = [...newPhotos, ...newComments].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+      // Merge and unique by id, keeping newest, and filter out dismissed
+      const seenIds = new Set(notifications.map(n => n.id));
+      const freshItems = allNewItems.filter((n: any) => !seenIds.has(n.id) && !dismissedIds.includes(n.id));
 
       if (freshItems.length > 0) {
+        // Since we have fresh notifications, update the lastViewed timestamp to clear Navbar dot
+        localStorage.setItem('lastViewedFollowingFeed', new Date().toISOString());
         notifications = [...freshItems, ...notifications].slice(0, MAX_NOTIFICATIONS);
         renderNotifications();
       }

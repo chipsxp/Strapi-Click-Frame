@@ -34,16 +34,33 @@ try {
   console.error("[SEO] Error fetching global SEO data:", error);
 }
 
+const siteName = globalData?.siteName || "Photorium";
+
+// Fix for Reverse Proxies (LiteSpeed/cPanel) globally
+const forwardedHost = Astro.request.headers.get('x-forwarded-host');
+const forwardedProto = Astro.request.headers.get('x-forwarded-proto') || 'https';
+const hostHeader = Astro.request.headers.get('host');
+
+let resolvedOrigin = Astro.url.origin;
+if (forwardedHost) {
+  resolvedOrigin = `${forwardedProto}://${forwardedHost}`;
+} else if (hostHeader && !hostHeader.includes('localhost') && !hostHeader.includes('127.0.0.1')) {
+  resolvedOrigin = `https://${hostHeader}`;
+}
+
+const defaultCanonical = import.meta.env.PUBLIC_SITE_URL 
+  ? `${import.meta.env.PUBLIC_SITE_URL}${Astro.url.pathname}`
+  : `${resolvedOrigin}${Astro.url.pathname}`;
+
 const {
   title,
   description = globalData?.defaultSeo?.metaDescription ||
     globalData?.siteDescription ||
     "Photorium - The dynamic community for digital artists.",
   image = globalData?.defaultSeo?.shareImage?.url || "/favicon.svg",
-  canonicalURL = Astro.url.href,
+  canonicalURL = defaultCanonical,
 } = Astro.props;
 
-const siteName = globalData?.siteName || "Photorium";
 const finalTitle = title ? `${title} | ${siteName}` : siteName;
 
 // Resilient Favicon Path for Strapi 5.4

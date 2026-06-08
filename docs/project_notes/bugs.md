@@ -4,6 +4,15 @@ Track bugs chronologically. Keep entries brief. Remove entries older than 6 mont
 
 ---
 
+### 2026-06-08 - Social Share Links Pointing to localhost in Production
+
+- **Issue**: Social share buttons (X, Facebook, etc.) on the photo details page were generating links starting with `http://localhost:4321` instead of the production domain `https://crunch.chipsxp.com`.
+- **Root Cause**: The Astro application runs on a Node.js virtual environment in cPanel behind a LiteSpeed reverse proxy. LiteSpeed forwards external requests to the internal localhost port. Consequently, `Astro.url.origin` (which reads the internal request) incorrectly reported `http://localhost:4321` instead of the public domain.
+- **Solution**: Updated the dynamic URL detection logic in `react/src/pages/photo/[id].astro` to explicitly read reverse proxy headers (`x-forwarded-host` and `x-forwarded-proto`), falling back to the standard `host` header.
+- **Prevention**: When generating absolute URLs dynamically in environments behind a reverse proxy (like cPanel/LiteSpeed or Nginx), never rely solely on `Astro.url.origin` or `request.url`. Always parse `x-forwarded-*` headers first.
+
+---
+
 ### 2026-05-25 - Persistent Logout / Sticky Session
 
 - **Issue**: User remains logged in even after clicking "Log Out" in the dashboard.

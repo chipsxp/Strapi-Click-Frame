@@ -102,6 +102,7 @@ export default {
               userStats = {
                   classic_munch_given_total: user.classic_munch_given_total || 0,
                   cheddar_munch_balance: user.cheddar_munch_balance || 0,
+                  cheddar_given_total: user.cheddar_given_total || 0,
                   total_photos_fried: user.photos?.count ?? 0,
                   total_followers: user.followers?.count ?? 0,
                   total_following: user.following?.count ?? 0,

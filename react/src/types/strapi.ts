@@ -46,6 +46,7 @@ export interface StrapiUser {
   bio?: string;
   avatar?: StrapiMedia;
   cheddar_munch_balance?: number;
+  cheddar_given_total?: number;
   classic_munch_given_total?: number;
   last_classic_munch_at?: string;
   following?: StrapiUser[];
@@ -161,6 +162,19 @@ export interface StrapiDonation {
   updatedAt: string;
 }
 
+export interface StrapiNotification {
+  id: number;
+  documentId: string;
+  type: 'comment_on_photo' | 'reply_to_comment';
+  is_read: boolean;
+  recipient?: StrapiUser;
+  sender?: StrapiUser;
+  photo?: StrapiPhoto;
+  comment?: StrapiComment;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface StrapiCommunityStats {
   community: {
     total_users: number;
@@ -184,6 +198,7 @@ export interface StrapiCommunityStats {
   user: {
     classic_munch_given_total: number;
     cheddar_munch_balance: number;
+    cheddar_given_total: number;
     total_photos_fried: number;
     total_followers: number;
     total_following: number;

@@ -1,0 +1,51 @@
+{
+  "kind": "collectionType",
+  "collectionName": "notifications",
+  "info": {
+    "singularName": "notification",
+    "pluralName": "notifications",
+    "displayName": "Notification",
+    "description": "User notifications for comments and replies"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "comment_on_photo",
+        "reply_to_comment"
+      ],
+      "required": true
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false,
+      "required": true
+    },
+    "recipient": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "notifications_received"
+    },
+    "sender": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "notifications_sent"
+    },
+    "photo": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::photo.photo"
+    },
+    "comment": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::comment.comment"
+    }
+  }
+}

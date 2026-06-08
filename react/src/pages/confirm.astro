@@ -27,7 +27,14 @@ if (!confirmationToken) {
     } else {
       const data = await res.json().catch(() => ({}));
       status = 'error';
-      message = data.error?.message || `Verification failed (Status: ${res.status}).`;
+      
+      // If Strapi returns 400/500 or specific "Invalid token" message, 
+      // it's highly likely they clicked a second time.
+      if (res.status === 400 || res.status === 500 || data.error?.message?.toLowerCase().includes('invalid')) {
+          message = "You're already verified. No need for a second time.";
+      } else {
+          message = data.error?.message || `Verification failed (Status: ${res.status}).`;
+      }
     }
   } catch (err: any) {
     status = 'error';

@@ -147,6 +147,7 @@ export default {
             0,
             (user.cheddar_munch_balance || 1) - 1,
           ),
+          cheddar_given_total: (user.cheddar_given_total || 0) + 1,
         },
       });
     }
@@ -178,16 +179,23 @@ export default {
 
     // If they delete a Cheddar fave, they get the chip back
     if (type === "cheddar" && user?.documentId) {
-      const userDoc = await strapi
+      interface StrapiUserDoc {
+        cheddar_munch_balance?: number;
+        cheddar_given_total?: number;
+      }
+      
+      const userDoc = (await strapi
         .documents("plugin::users-permissions.user")
         .findOne({
           documentId: user.documentId,
-        });
+        })) as unknown as StrapiUserDoc | null;
+
       if (userDoc) {
         await strapi.documents("plugin::users-permissions.user").update({
           documentId: user.documentId,
           data: {
             cheddar_munch_balance: (userDoc.cheddar_munch_balance || 0) + 1,
+            cheddar_given_total: Math.max(0, (userDoc.cheddar_given_total || 1) - 1),
           },
         });
       }

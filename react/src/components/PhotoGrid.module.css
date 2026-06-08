@@ -132,6 +132,14 @@
   transition: all 0.2s ease;
 }
 
+/* Light variant for detail pages where background is already white/light */
+.munchBtn.light {
+  background: #ffffff;
+  border: 2px solid #eee;
+  color: #3d2b1f; /* High contrast dark brown */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
 .munchBtn:hover {
   background: #fff;
   color: #3d2b1f;
@@ -144,6 +152,16 @@
 }
 
 .munchBtn.cheddar:hover {
+  background: #fff3e0;
+  border-color: #ff9800;
+}
+
+.munchBtn.light.classic:hover {
+  background: #fff9e6;
+  border-color: #ffc107;
+}
+
+.munchBtn.light.cheddar:hover {
   background: #fff3e0;
   border-color: #ff9800;
 }

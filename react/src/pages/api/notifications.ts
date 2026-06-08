@@ -39,7 +39,8 @@ export const GET: APIRoute = async ({ cookies, locals }) => {
     );
 
     if (!photosRes.ok) {
-      throw new Error('Failed to fetch following feed');
+      console.warn('Failed to fetch following feed photos:', photosRes.status);
+      return new Response(JSON.stringify({ data: [] }), { status: 200 });
     }
 
     const photosData = await photosRes.json();

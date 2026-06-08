@@ -58,8 +58,19 @@ const getImageUrl = (photo: StrapiPhoto) => {
 
 const imageUrl = getImageUrl(photo);
 
-// FIX: Ensure share URL uses the public domain, not localhost
-const publicUrl = import.meta.env.PUBLIC_SITE_URL || 'https://photorium-production.up.railway.app';
+// FIX: Dynamically detect the current origin for share URLs behind a Reverse Proxy (LiteSpeed/cPanel)
+const forwardedHost = Astro.request.headers.get('x-forwarded-host');
+const forwardedProto = Astro.request.headers.get('x-forwarded-proto') || 'https';
+const hostHeader = Astro.request.headers.get('host');
+
+let resolvedOrigin = Astro.url.origin;
+if (forwardedHost) {
+  resolvedOrigin = `${forwardedProto}://${forwardedHost}`;
+} else if (hostHeader && !hostHeader.includes('localhost') && !hostHeader.includes('127.0.0.1')) {
+  resolvedOrigin = `https://${hostHeader}`;
+}
+
+const publicUrl = import.meta.env.PUBLIC_SITE_URL || resolvedOrigin;
 const currentUrl = `${publicUrl}/photo/${photo.documentId}`;
 
 const formattedDate = new Date(photo.createdAt || Date.now()).toLocaleDateString('en-US', {
@@ -75,6 +86,7 @@ const isOwner = user?.id === photo.author?.id;
   title={`${photo.title} | Photorium`} 
   description={photo.description || `Check out this amazing art titled "${photo.title}" by ${photo.author?.username || 'an artist'} on Photorium.`}
   image={imageUrl}
+  canonicalURL={currentUrl}
 >
   <div class="photo-detail-container">
     <div class="photo-hero">

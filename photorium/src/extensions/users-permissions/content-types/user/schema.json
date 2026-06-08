@@ -134,6 +134,11 @@
       "default": 0,
       "min": 0
     },
+    "cheddar_given_total": {
+      "type": "integer",
+      "default": 0,
+      "min": 0
+    },
     "following": {
       "type": "relation",
       "relation": "manyToMany",
@@ -151,6 +156,18 @@
       "relation": "oneToMany",
       "target": "api::donation.donation",
       "mappedBy": "user"
+    },
+    "notifications_received": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::notification.notification",
+      "mappedBy": "recipient"
+    },
+    "notifications_sent": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::notification.notification",
+      "mappedBy": "sender"
     }
   }
 }

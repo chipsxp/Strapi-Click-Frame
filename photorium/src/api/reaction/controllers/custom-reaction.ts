@@ -5,6 +5,7 @@ interface StrapiUserStats {
   documentId: string;
   classic_munch_given_total: number;
   cheddar_munch_balance: number;
+  cheddar_given_total: number;
   last_classic_munch_at: string;
 }
 
@@ -71,6 +72,7 @@ export default {
         user: {
             classic_munch_given_total: updatedUser.classic_munch_given_total,
             cheddar_munch_balance: updatedUser.cheddar_munch_balance,
+            cheddar_given_total: updatedUser.cheddar_given_total,
             last_classic_munch_at: updatedUser.last_classic_munch_at
         },
         photo: {
