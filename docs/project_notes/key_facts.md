@@ -113,3 +113,33 @@ Non-sensitive project configuration and constants. **Never store passwords, API 
 - **Tech Stack**: Astro 6 + Vite + strapi-community-astro-loader.
 - **Content Delivery**: Strapi REST API → Astro Content Collections → Vite Build → Static/SSR Public Grid.
 
+
+
+---
+
+## ImageKit Plugin Admin Settings (as of 2026-10-22)
+
+- **Settings location**: Strapi Admin > ImageKit plugin > Settings page. Stored in the **database** (plugin store), NOT in `plugins.ts`.
+- **Precedence**: Once saved in the admin panel, DB values override the `imagekit.config` block in `photorium/config/plugins.ts` (which only supplies credentials as first-run fallback). Changing `IMAGEKIT_*` env vars after an admin save has NO effect on plugin settings.
+- **Media Delivery**: "Deliver media using ImageKit" = ON; "Use ImageKit Transformations for Responsive URLs" = ON; Signed URLs = OFF (public photo grid).
+- **Upload Configuration**: "Enable Uploads" = OFF (intentional) - uploads already go to ImageKit via `strapi-provider-upload-imagekit` (the `upload` provider block in `plugins.ts`). Enabling both would duplicate uploads.
+- **Per-environment**: Local SQLite and Strapi Cloud production DBs are separate - toggles must be set in EACH admin panel.
+
+
+---
+
+## PR-1 API Surface and Permission Model (as of 2026-10-22)
+
+- **Backend dir**: Strapi lives in `photorium/` (not the repo root).
+- **Custom endpoints**:
+  - `PUT /api/user-ext/me` - authenticated; whitelisted fields only (bio, nickname, avatar, username, real_name).
+  - `POST /api/user-ext/toggle-follow` - authenticated; body `{ targetUserDocumentId }`.
+  - `GET /api/user-ext/public-profile/:username` - public; explicit field allow-list plus follower/following counts.
+  - `POST /api/donations/record` - authenticated; `month` is server-assigned.
+  - `POST /api/confirm-email` - Astro route; forwards the verification token to Strapi.
+- **Policies**: `global::force-author` (`config.field` = `author` or `user`) on `create` for photo, comment, category.
+- **Not granted to any API role**: `plugin::users-permissions.user.update`, `plugin::upload.api.upload`, public `donation.create`.
+- **Public read by design**: `user.find`/`findOne`, munch counters, `community-stat.getStats`.
+- **Private user fields**: `email`, `real_name`, `special_date`, plus the plugin's token fields.
+- **Email confirmation**: link is `/confirm?token=...`; the page shows a button and confirms via POST. Strapi tokens are single-use.
+- **Strictness rule**: no `any`, no `unknown` annotations, no `as unknown as`. Known remaining violations are tracked in issue M8.

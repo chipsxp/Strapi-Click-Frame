@@ -197,3 +197,21 @@ Architectural Decision Records (ADRs) for the Strapi-Click-Frame project. Add a 
  -   '  R e s o l v e s   s t r i c t   A s t r o   t y p e - c h e c k i n g   e r r o r s   i n   c r o s s - f r a m e w o r k   s e t u p s . 
  -   L'  R e q u i r e s   a   s l i g h t l y   v e r b o s e   c a s t   a t   t h e   i n l i n e   \ o n S u b m i t \   p r o p   s i t e   w i t h i n   R e a c t   c o m p o n e n t s .  
  
+### ADR-011: Self-Scoped `user-ext` API and Public-Read User Stats (2026-10-22)
+
+**Context:**
+- The users-permissions plugin's `PUT /api/users/:id` has no ownership check, so granting `user.update` to API roles allowed any user to edit any account.
+- Artist discovery and the Hash Brown Hub leaderboards require anonymous visitors to read artists and their munch stats.
+
+**Decision:**
+- Do not grant `plugin::users-permissions.user.update` to any API role. Profile edits and follows go through `api::user-ext` (`PUT /api/user-ext/me`, `POST /api/user-ext/toggle-follow`), which always act on `ctx.state.user` and write only whitelisted fields.
+- Keep public `user.find`/`findOne` and keep `last_classic_munch_at`, `classic_munch_given_total`, `cheddar_munch_balance` publicly readable. Only `email`, `real_name` and `special_date` are `private`.
+- Public artist pages use `GET /api/user-ext/public-profile/:username`, which returns an explicit field allow-list.
+- `global::force-author` overwrites `author`/`user` on `create` for photos, comments and categories.
+- Donations are recorded only through `POST /api/donations/record` (authenticated); `month` is server-assigned.
+
+**Consequences:**
+- Positive: read access stays public as intended, while writes are limited to the owner.
+- Positive: no client can set the economy counters or another user's data.
+- Negative: one more custom API surface to maintain; `user-ext` is a plain controller, not a content type.
+- Open: public `reaction.find`/`findOne` exposes who reacted to what; product decision pending (issue L3).

@@ -1,32 +1,29 @@
 ---
 import ClientLayout from '../../layouts/ClientLayout.astro';
-import type { StrapiPhoto, StrapiUser } from '../../types/strapi';
+import type { StrapiPhoto, PublicArtistProfile } from '../../types/strapi';
 
 const { username } = Astro.params;
 const { user: currentUser } = Astro.locals;
 
-// Use 127.0.0.1 for local dev to avoid IPv6 localhost issues in some environments
 const strapiUrl = import.meta.env.STRAPI_URL || 'http://127.0.0.1:1337';
 
-// 1. Fetch the user profile by username
-// NOTE: Strapi 5 Users endpoint supports filters[username]=value and populate=*
-// Using encodeURIComponent to handle any special characters in usernames
-const userRes = await fetch(`${strapiUrl}/api/users?filters[username]=${encodeURIComponent(username || '')}&populate=*`);
+// 1. Fetch the public artist profile (no email / private fields)
+const userRes = await fetch(`${strapiUrl}/api/user-ext/public-profile/${encodeURIComponent(username || '')}`);
 const userJson = await userRes.json();
 
-if (!userRes.ok || !Array.isArray(userJson) || userJson.length === 0) {
+if (!userRes.ok || !userJson?.data) {
   console.error(`Artist profile fetch failed for ${username}:`, userRes.status);
   return Astro.redirect('/404');
 }
 
-const artist: StrapiUser = userJson[0];
-const followersCount = artist.followers?.length || 0;
-const followingCount = artist.following?.length || 0;
-const isFollowing = currentUser ? artist.followers?.some(u => u.documentId === currentUser.documentId) : false;
+const artist: PublicArtistProfile = userJson.data;
+const followersCount = artist.followersCount || 0;
+const followingCount = artist.followingCount || 0;
+const isFollowing = currentUser ? currentUser.following?.some((u: { documentId?: string }) => u.documentId === artist.documentId) : false;
 const isSelf = currentUser?.documentId === artist.documentId;
 
-// 2. Fetch the user's photos
-const photosRes = await fetch(`${strapiUrl}/api/photos?filters[author][id][$eq]=${artist.id}&populate=image`);
+// 2. Fetch the user's photos by documentId
+const photosRes = await fetch(`${strapiUrl}/api/photos?filters[author][documentId][$eq]=${artist.documentId}&populate=image`);
 const photosJson = await photosRes.json();
 const photos: StrapiPhoto[] = photosJson.data || [];
 

@@ -1,3 +1,5 @@
+import { errors } from '@strapi/utils';
+import type { Context, Next } from 'koa';
 
 export default (plugin) => {
   const originalMe = plugin.controllers.user.me;
@@ -41,5 +43,28 @@ export default (plugin) => {
     }
   };
 
+  // Make email confirmation idempotent. Strapi nulls confirmationToken on first
+  // use, so mail scanners / link prefetchers that open the link first make the
+  // real click fail with ValidationError('Invalid token'). Treat exactly that
+  // case as "already confirmed". Every other error is rethrown untouched.
+  const originalEmailConfirmation = plugin.controllers.auth.emailConfirmation;
+
+  plugin.controllers.auth.emailConfirmation = async (
+    ctx: Context,
+    next: Next,
+    returnUser?: boolean
+  ) => {
+    try {
+      await originalEmailConfirmation(ctx, next, returnUser);
+    } catch (err) {
+      if (err instanceof errors.ValidationError && err.message === 'Invalid token') {
+        ctx.send({ ok: true, alreadyConfirmed: true });
+        return;
+      }
+      throw err;
+    }
+  };
+
   return plugin;
 };
+

@@ -3,6 +3,33 @@
 Track bugs chronologically. Keep entries brief. Remove entries older than 6 months if no longer relevant.
 
 ---
+### 2026-10-22 - Email Verification Always Fails for New Signups ("already verified")
+- **Issue**: Every new signup's verification email led to a failure page, even for brand-new accounts. Deleting and recreating the account did not help.
+- **Root Cause**: Strapi's `GET /api/auth/email-confirmation?confirmation=TOKEN` is single-use: `emailConfirmation` sets `confirmationToken: null` on the first hit and throws `ValidationError('Invalid token')` afterwards. `react/src/pages/confirm.astro` performed that confirmation in its frontmatter, so any GET (mail-scanner link checks, browser prefetch/prerender) consumed the token before the human clicked. The real click then received `Invalid token`.
+- **Solution**: (1) `confirm.astro` no longer mutates on GET; it renders a "Confirm My Stash" button. (2) New `POST /api/confirm-email` Astro route forwards the token server-side. (3) `strapi-server.ts` wraps `auth.emailConfirmation` and maps exactly `ValidationError('Invalid token')` to `{ ok: true, alreadyConfirmed: true }`; all other errors are rethrown.
+- **Prevention**: Never perform a state change in a GET handler or page frontmatter, especially for links delivered by email. Gate one-time tokens behind an explicit user action (POST).
+- **Open item**: The confirm page has no "resend link" action yet; an invalid token only links back to signup.
+
+---
+
+### 2026-10-22 - Authorization Gaps in Bootstrap Permissions (account takeover, forgery, spoofing)
+- **Issue**: (1) `plugin::users-permissions.user.update` was granted to `authenticated` and `editor`; the plugin's `PUT /api/users/:id` has no ownership check, so any logged-in user could edit any account, including `email` and the munch counters. (2) Public role had `donation.create`, allowing forged donations. (3) `photo`/`comment`/`category` `create` accepted a client-supplied `author`/`user`. (4) `email` and `real_name` were not `private`, so public `GET /api/users` exposed every email.
+- **Root Cause**: Permissions were granted at the plugin-action level with no per-record ownership policy, and the user schema did not mark PII as private.
+- **Solution**: Removed `user.update`, public `donation.create` and `plugin::upload.api.upload` from the bootstrap grants. Added self-scoped `api::user-ext` endpoints (`updateMe`, `toggleFollow`, public `publicProfile`), a `donation.record` action (server-set `month`, `user` linked only to the caller, amount bounds), and a `global::force-author` policy on the three `create` routes. Marked `email` and `real_name` `private` (`special_date` already was).
+- **Prevention**: Never grant a plugin write action that targets another record by id unless an ownership policy exists. Treat any relation that names the owner (`author`, `user`) as server-assigned.
+- **Note**: Public read of `user.find`/`findOne` and of the munch counters is intentional (artist discovery, Hash Brown Hub). See ADR-011.
+
+---
+
+### 2026-10-22 - TypeScript Build Errors in Custom Strapi Code
+- **Issue**: `strapi build` failed with TS2345 on `createCoreController('api::user-ext.user-ext')` and TS2322 on `documents().create({ data })` with a loose `data` object. A policy typed with Strapi's `PolicyContext` failed with TS2551 on `.state`.
+- **Root Cause**: (1) `createCoreController` only accepts real content-type UIDs; `user-ext` has no schema. (2) `create()` requires the generated `Input<'api::...'>`, so a `Record<string, unknown>` cannot satisfy it. (3) Strapi's `PolicyContext` is `Omit<ExtendableContext, 'is'>` and does not declare `state`.
+- **Solution**: Use a plain controller object (as `custom-reaction.ts` does) for non-content-type APIs. Pass an inline object literal that matches the schema. Extend `Core.PolicyContext` with a local interface that declares `state.user`.
+- **Prevention**: Do not add a placeholder `schema.json` to satisfy a factory; it creates a real DB table. Never silence these errors with `any`, `unknown` or `as unknown as`.
+
+---
+
+
 
 ### 2026-05-14 - Email Verification Link Mismatch (confirm_token vs confirmationToken)
 - **Issue**: Users remain unconfirmed (`confirmed: false`) even after clicking the email verification link. The link would redirect to the success page but the database remained unchanged.

@@ -223,3 +223,23 @@
     - **Strict Interfaces**: Implemented local interfaces for Strapi 5 internal types (e.g., `CategoryWithUser`, `StrapiUserStats`, `StrapiPhotoStats`).
     - **Type-Safe Controllers**: Correctly typed `ctx.state.user` and request bodies in custom Strapi controllers.
     - **Skill Update**: Updated the `typescript-architect` skill with documented patterns for handling Strapi 5's sparse internal types safely.
+
+
+### 2026-10-22 - ImageKit Plugin Admin Settings Configured
+- Domain migration follow-up (`crunch.chipsxp.com` -> `chipncheddar.com`): email-confirmation redirect URL updated in Strapi Admin > Users & Permissions > Email Templates (DB-stored setting).
+- ImageKit plugin settings configured in admin panel: Media Delivery ON + Transform URLs ON; Upload toggle left OFF (uploads handled by `strapi-provider-upload-imagekit` provider block). Details recorded in `key_facts.md`.
+
+### 2026-10-22 - PR-1: Auth & Permissions Hardening (C1-C5)
+
+- **Status**: Completed (build-verified; live end-to-end test pending)
+- **Description**: First of seven PRs from the full-stack security and quality audit. Plan: `implementation_plan.md`; issue sources: `docs/github-issues/`.
+- **Key Contributions**:
+    - **C1**: Removed `user.update` from `authenticated`/`editor`; added self-scoped `user-ext` `updateMe` and `toggleFollow`; repointed `update-profile.ts` and `toggle-follow.ts`.
+    - **C2**: Marked `email`/`real_name` private; added `GET /api/user-ext/public-profile/:username`; `artist/[username].astro` now uses it. Public user and stats reads kept by design (ADR-011).
+    - **C3**: Added `global::force-author` policy on photo/comment/category `create`.
+    - **C4**: Removed public `donation.create`; added authenticated `donation.record`.
+    - **C5**: Email confirmation is now button-gated (`POST /api/confirm-email`) and idempotent server-side.
+    - **Also**: Removed the invalid `plugin::upload.api.upload` grant (issue L4).
+- **Verification**: `strapi build` passes; `astro check` reports 0 errors, 0 warnings, 0 hints.
+- **Not done**: Live end-to-end test; resend-confirmation action on the confirm page; remaining `any` usage in older files (issue M8, PR-7).
+- **Notes**: See `bugs.md` (2026-10-22 entries) and ADR-011.

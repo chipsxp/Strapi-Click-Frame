@@ -42,14 +42,11 @@ export default {
       });
 
       if (publicRole) {
-        const controllers = ['photo', 'category', 'tag', 'reaction', 'comment', 'global', 'about', 'donation', 'community-stat'];
+        const controllers = ['photo', 'category', 'tag', 'reaction', 'comment', 'global', 'about', 'community-stat'];
         const publicPermissionsToCreate = [];
 
         for (const controller of controllers) {
           const actions = ['find', 'findOne'];
-          if (controller === 'donation') {
-            actions.push('create');
-          }
           if (controller === 'community-stat') {
             actions.push('getStats');
           }
@@ -79,7 +76,8 @@ export default {
         
         const publicUserPerms = [
           'plugin::users-permissions.user.find',
-          'plugin::users-permissions.user.findOne'
+          'plugin::users-permissions.user.findOne',
+          'api::user-ext.user-ext.publicProfile'
         ];
         
         for (const action of publicUserPerms) {
@@ -98,10 +96,8 @@ export default {
           'plugin::users-permissions.user.find',
           'plugin::users-permissions.user.findOne',
           'plugin::users-permissions.user.me',
-          'plugin::users-permissions.user.update',
           'plugin::users-permissions.auth.callback',
           'plugin::upload.content-api.upload',
-          'plugin::upload.api.upload',
           'api::photo.photo.create',
           'api::photo.photo.update',
           'api::photo.photo.delete',
@@ -116,8 +112,10 @@ export default {
           'api::comment.comment.create',
           'api::comment.comment.find',
           'api::comment.comment.findOne',
-          'api::donation.donation.create',
-          'api::community-stat.community-stat.getStats'
+          'api::donation.donation.record',
+          'api::community-stat.community-stat.getStats',
+          'api::user-ext.user-ext.updateMe',
+          'api::user-ext.user-ext.toggleFollow'
         ];
 
         for (const action of authActions) {
@@ -156,10 +154,8 @@ export default {
           'plugin::users-permissions.user.find',
           'plugin::users-permissions.user.findOne',
           'plugin::users-permissions.user.me',
-          'plugin::users-permissions.user.update',
           'plugin::users-permissions.auth.callback',
           'plugin::upload.content-api.upload',
-          'plugin::upload.api.upload',
           'api::photo.photo.create',
           'api::photo.photo.update',
           'api::photo.photo.delete',
@@ -175,7 +171,10 @@ export default {
           'api::comment.comment.find',
           'api::comment.comment.findOne',
           'api::comment.comment.delete',
-          'api::community-stat.community-stat.getStats'
+          'api::community-stat.community-stat.getStats',
+          'api::donation.donation.record',
+          'api::user-ext.user-ext.updateMe',
+          'api::user-ext.user-ext.toggleFollow'
         ];
 
         for (const action of editorActions) {
