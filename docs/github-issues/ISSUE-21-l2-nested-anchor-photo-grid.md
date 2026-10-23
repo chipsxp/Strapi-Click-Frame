@@ -1,6 +1,6 @@
 # L2: PhotoGrid contains nested/interactive `<a>` via `<object>` wrapping `<img>`
 
-**Labels:** `bug`, `frontend`, `a11y`, `priority: low` · **PR:** PR-5
+**Labels:** `bug`, `frontend`, `a11y`, `priority: low` · **PR:** #30 (PR-5)
 
 ## Problem
 `PhotoGrid.tsx` wraps images in `<object>` elements inside `<a>`; `object` can load content and, combined with absolutely-positioned `<a>` overlays, produces invalid nested-interactive HTML and unpredictable keyboard/screen-reader behavior.

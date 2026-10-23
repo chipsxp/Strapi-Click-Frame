@@ -1,6 +1,6 @@
 # M3: Hardcoded localhost/127.0.0.1 Strapi URLs in client-shipped code
 
-**Labels:** `bug`, `frontend`, `priority: medium` · **PR:** PR-5
+**Labels:** `bug`, `frontend`, `priority: medium` · **PR:** #30 (PR-5)
 
 ## Problem
 Client-side code hardcodes the dev backend: `Navbar.tsx` (`http://127.0.0.1:1337`), `PhotoGrid.tsx` image fallback (`http://localhost:1337`), `photo/[id].astro` fallback. Non-`PUBLIC_` env vars are undefined in client bundles, so these break in production and leak internal topology.

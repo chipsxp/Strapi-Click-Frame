@@ -1,6 +1,6 @@
 # C5: Email verification link dies before user clicks it (single-use GET consumed by prefetch)
 
-**Labels:** `security`, `bug`, `backend`, `frontend`, `priority: critical` · **PR:** PR-1
+**Labels:** `security`, `bug`, `backend`, `frontend`, `priority: critical` · **PR:** #6 (PR-1) · **Status:** Fix applied (commit c0613c8, PR #6)
 
 ## Problem
 Every new signup's verification email fails with "You're already verified. No need for a second time." (even for brand-new accounts after deleting old ones). Root cause: Strapi's `GET /api/auth/email-confirmation?confirmation=TOKEN` is **single-use** — the plugin nulls `confirmationToken` on the first hit. `react/src/pages/confirm.astro` performs the confirmation as a side effect of rendering a GET page, so email link scanners (Outlook SafeLinks, Gmail/Apple prefetch) and browser prerendering consume the token **before the human clicks**. The real click then gets 400 `Invalid token`, displayed as a failure. Deleting/recreating accounts can't help — every fresh email gets scanned.

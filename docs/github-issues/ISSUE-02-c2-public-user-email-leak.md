@@ -1,6 +1,6 @@
 # C2: Public user enumeration leaks email addresses (PII)
 
-**Labels:** `security`, `backend`, `frontend`, `priority: critical` · **PR:** PR-1
+**Labels:** `security`, `backend`, `frontend`, `priority: critical` · **PR:** #6 (PR-1) · **Status:** Fix applied (commit c0613c8, PR #6)
 
 ## Problem
 Bootstrap grants `plugin::users-permissions.user.find` and `user.findOne` to the **public** role. `email` is not marked `"private": true` in the user schema extension, so `GET /api/users` anonymously returns every user's email (and other PII/stats). `react/src/pages/artist/[username].astro` currently depends on this endpoint.

@@ -1,6 +1,6 @@
 # H5: /admin area is unguarded, links to a dead page, shows hardcoded stats
 
-**Labels:** `security`, `bug`, `frontend`, `priority: high` · **PR:** PR-6
+**Labels:** `security`, `bug`, `frontend`, `priority: high` · **PR:** #31 (PR-6)
 
 ## Problem
 `react/src/layouts/AdminLayout.astro` performs no role check — any visitor renders `/admin`. Its nav links to `/admin/users`, which doesn't exist (404). Stats (1,636 photos / 12 users / 84 tags) are hardcoded fiction.

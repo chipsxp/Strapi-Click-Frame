@@ -1,6 +1,6 @@
 # L1: Comment lifecycle fails open on lookup errors
 
-**Labels:** `bug`, `backend`, `priority: low` · **PR:** PR-7
+**Labels:** `bug`, `backend`, `priority: low` · **PR:** #32 (PR-7)
 
 ## Problem
 `comment/lifecycles.ts` `beforeCreate` catches errors when fetching the parent photo and returns silently, allowing comments on missing/invalid photos. Fail-closed is safer.

@@ -1,6 +1,6 @@
 # C3: Author spoofing on photo/comment/category create endpoints
 
-**Labels:** `security`, `backend`, `priority: critical` · **PR:** PR-1
+**Labels:** `security`, `backend`, `priority: critical` · **PR:** #6 (PR-1) · **Status:** Fix applied (commit c0613c8, PR #6)
 
 ## Problem
 `photo.create`, `comment.create`, and `category.create` are granted to authenticated users, but no policy forces `author`/`user` to equal the caller. The Astro proxies set authorship correctly, but direct calls to the Strapi API can attribute content to ANY user.

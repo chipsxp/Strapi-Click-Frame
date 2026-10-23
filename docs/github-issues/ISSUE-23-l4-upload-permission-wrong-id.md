@@ -1,6 +1,6 @@
 # L4: Public/authenticated granted admin-scoped upload action
 
-**Labels:** `security`, `backend`, `priority: low` · **PR:** PR-7
+**Labels:** `security`, `backend`, `priority: low` · **PR:** #32 (PR-7)
 
 ## Problem
 Bootstrap grants `plugin::upload.api.upload` (an admin-content-manager-style action ID) to authenticated and editor roles. This ID does not correspond to a normal user API route and may bypass upload-provider limits; combined with no size/rate limits, any authenticated user can upload unlimited 15MB files to ImageKit.

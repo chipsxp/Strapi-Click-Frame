@@ -1,6 +1,6 @@
 # L6: index.astro uses 9999999 sentinel number to mean "no results"
 
-**Labels:** `bug`, `frontend`, `priority: low` · **PR:** PR-5
+**Labels:** `bug`, `frontend`, `priority: low` · **PR:** #30 (PR-5)
 
 ## Problem
 When a flavor has no photos, `index.astro` builds `filters: { id: { $in: [9999999] } }` to force an empty list. This is fragile and confusing.

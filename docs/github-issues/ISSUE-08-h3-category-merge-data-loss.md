@@ -1,6 +1,6 @@
 # H3: Category merge destroys other category memberships, is non-atomic, and contradicts its own policy
 
-**Labels:** `data-integrity`, `bug`, `backend`, `priority: high` · **PR:** PR-4
+**Labels:** `data-integrity`, `bug`, `backend`, `priority: high` · **PR:** #29 (PR-4)
 
 ## Problem
 Three defects in `category.merge`:

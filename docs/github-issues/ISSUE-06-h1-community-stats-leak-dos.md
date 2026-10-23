@@ -1,6 +1,6 @@
 # H1: /api/community-stats leaks author emails and is an unauthenticated DoS vector
 
-**Labels:** `security`, `performance`, `backend`, `priority: high` · **PR:** PR-2
+**Labels:** `security`, `performance`, `backend`, `priority: high` · **PR:** #27 (PR-2)
 
 ## Problem
 `community-stat.getStats` returns `top_photos_chips/cheddar/clicks` as raw photo documents with `populate: ['author']` — full user objects including `email` are exposed to anonymous callers. It also loads ALL monthly reactions and donations into memory (`findMany` with no limit) on every uncached request — an expensive unauthenticated endpoint.

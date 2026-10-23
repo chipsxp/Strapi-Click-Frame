@@ -1,6 +1,6 @@
 # H4: No rate limiting on any endpoint
 
-**Labels:** `security`, `performance`, `backend`, `priority: high` · **PR:** PR-2
+**Labels:** `security`, `performance`, `backend`, `priority: high` · **PR:** #27 (PR-2)
 
 ## Problem
 `strapi::ratelimit` is absent from `photorium/config/middlewares.ts`. Login (credential stuffing), registration (spam), comments (spam), uploads (15MB×N to ImageKit = storage abuse), view-increment (count inflation), and community-stats (H1 compute cost) are all unlimited.

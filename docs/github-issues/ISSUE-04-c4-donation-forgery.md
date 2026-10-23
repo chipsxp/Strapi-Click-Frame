@@ -1,6 +1,6 @@
 # C4: Unauthenticated donation forgery pollutes leaderboard
 
-**Labels:** `security`, `backend`, `priority: critical` · **PR:** PR-1
+**Labels:** `security`, `backend`, `priority: critical` · **PR:** #6 (PR-1) · **Status:** Fix applied (commit c0613c8, PR #6)
 
 ## Problem
 Bootstrap grants `donation.create` to the **public** role. Anyone can POST arbitrary donations — any `amount`, any `month`, and a `user` relation pointing at any account — directly forging the Hash Brown Hub "Top Munch Support" leaderboard and spamming the DB.

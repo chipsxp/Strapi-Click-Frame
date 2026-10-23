@@ -1,6 +1,6 @@
 # M9: Documentation drift — .clinerules/key_facts describe the old layout and versions
 
-**Labels:** `documentation`, `chore`, `priority: medium` · **PR:** PR-7
+**Labels:** `documentation`, `chore`, `priority: medium` · **PR:** #32 (PR-7)
 
 ## Problem
 `.clinerules` claims the Strapi backend is the repo root with a root `package.json` (actually `photorium/`) and Strapi 5.43.0 (actually 5.46.0). ADR-001 says the Astro loader lives in root `node_modules` — it's now in `react/package.json`. `key_facts.md` critical-file map partially stale. Wrong docs cause agents to edit the wrong paths.

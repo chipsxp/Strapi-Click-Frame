@@ -1,6 +1,6 @@
 # L3: Public can list who munched what via reaction.find/findOne
 
-**Labels:** `security`, `backend`, `priority: low` · **PR:** PR-7
+**Labels:** `security`, `backend`, `priority: low` · **PR:** #32 (PR-7)
 
 ## Problem
 `reaction.find`/`findOne` are granted to the public role, exposing the entire munch/reaction graph (who reacted to which photos, which could be PII-adjacent).

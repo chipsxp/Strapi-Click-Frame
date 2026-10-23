@@ -1,6 +1,6 @@
 # M1: register.ts cookie is insecure and inconsistent with login
 
-**Labels:** `security`, `bug`, `frontend`, `priority: medium` · **PR:** PR-5
+**Labels:** `security`, `bug`, `frontend`, `priority: medium` · **PR:** #30 (PR-5)
 
 ## Problem
 `react/src/pages/api/register.ts` sets the session cookie via a manual `Set-Cookie` string: no `Secure` flag in production, `Max-Age=2592000` (30 days) vs login's 7 days, and it returns the JWT in the JSON response body — defeating the HttpOnly design from ADR-009.

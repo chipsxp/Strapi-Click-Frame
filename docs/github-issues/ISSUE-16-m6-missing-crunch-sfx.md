@@ -1,6 +1,6 @@
 # M6: Crunch sound effect missing and referenced at two different paths
 
-**Labels:** `bug`, `frontend`, `priority: medium` · **PR:** PR-5
+**Labels:** `bug`, `frontend`, `priority: medium` · **PR:** #30 (PR-5)
 
 ## Problem
 `CommentSection.tsx` plays `/crunch.mp3`; `PhotoGrid.tsx` plays `/sfx/crunch.mp3`. `react/public/` contains only `favicon.svg` — both silently fail (`.catch(() => {})` hides it), and the paths are inconsistent.

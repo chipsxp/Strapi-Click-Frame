@@ -1,6 +1,6 @@
 # L5: Notifications endpoint populates all author fields recursively
 
-**Labels:** `security`, `frontend`, `priority: low` · **PR:** PR-5
+**Labels:** `security`, `frontend`, `priority: low` · **PR:** #30 (PR-5)
 
 ## Problem
 `react/src/pages/api/notifications.ts` uses `populate[author][populate]=*` for the "new photos by followed artists" query, pulling in every relation of the author including private fields.

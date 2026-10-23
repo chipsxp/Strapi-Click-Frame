@@ -1,6 +1,6 @@
 # M7: Auth middleware calls Strapi /users/me on every request
 
-**Labels:** `performance`, `frontend`, `priority: medium` · **PR:** PR-7
+**Labels:** `performance`, `frontend`, `priority: medium` · **PR:** #32 (PR-7)
 
 ## Problem
 `react/src/middleware.ts` performs an uncached `GET /api/users/me?populate=role` on EVERY request (pages, API routes, static assets), adding a backend round-trip to each hit.

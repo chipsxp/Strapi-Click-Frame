@@ -1,6 +1,6 @@
 # H2: Munch economy race conditions (double-spend daily Classic, overdraw Cheddar, lost counts)
 
-**Labels:** `data-integrity`, `bug`, `backend`, `priority: high` · **PR:** PR-3
+**Labels:** `data-integrity`, `bug`, `backend`, `priority: high` · **PR:** #28 (PR-3)
 
 ## Problem
 `custom-reaction.give` + `reaction/lifecycles.ts` do check-then-act without a transaction: two concurrent Classic munches both pass the daily-reset check (TOCTOU double-spend); Cheddar balance can go negative under concurrency; counter read-modify-write (`(count || 0) + 1`) loses updates. Same pattern in `custom-photo.incrementView`.
