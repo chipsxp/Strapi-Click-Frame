@@ -1338,6 +1338,7 @@ export interface PluginUsersPermissionsUser
     donations: Schema.Attribute.Relation<'oneToMany', 'api::donation.donation'>;
     email: Schema.Attribute.Email &
       Schema.Attribute.Required &
+      Schema.Attribute.Private &
       Schema.Attribute.Unique &
       Schema.Attribute.SetMinMaxLength<{
         minLength: 3;
@@ -1372,6 +1373,7 @@ export interface PluginUsersPermissionsUser
     publishedAt: Schema.Attribute.DateTime;
     reactions: Schema.Attribute.Relation<'oneToMany', 'api::reaction.reaction'>;
     real_name: Schema.Attribute.String &
+      Schema.Attribute.Private &
       Schema.Attribute.SetMinMaxLength<{
         maxLength: 100;
       }>;

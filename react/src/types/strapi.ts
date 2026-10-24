@@ -39,7 +39,7 @@ export interface StrapiUser {
   id: number;
   documentId: string;
   username: string;
-  email: string;
+  email?: string;
   nickname?: string;
   photos?: StrapiPhoto[];
   favorite_photos?: StrapiPhoto[];
@@ -54,6 +54,16 @@ export interface StrapiUser {
     name: string;
     type: string;
   };
+}
+
+export interface PublicArtistProfile {
+  documentId: string;
+  username: string;
+  nickname?: string;
+  bio?: string;
+  avatar?: StrapiMedia;
+  followersCount: number;
+  followingCount: number;
 }
 
 export interface StrapiCategory {
