@@ -42,12 +42,18 @@ photorium/data/
 *.env
 photorium/.env
 react/.env
+.env.bak
+.env.*.bak
 license.txt
 exports/
 .strapi/
 .strapi-updater.json
 .strapi-cloud.json
 gha-creds-*.json
+
+# Server config containing credentials/paths (M4)
+.htaccess
+**/.htaccess
 
 # AI Assistants & Local Tools (EXCLUDE FROM REPO)
 .claude/
@@ -56,7 +62,14 @@ gha-creds-*.json
 .vscode/
 graphify-out/
 .graphify_python
+.abacusai/
+.agents/
+.cursor/
+.continue/
 .github/copilot-instructions.md
+
+# Docs maintained locally only (issue/PR records live on GitHub)
+/docs/
 
 # Astro specific
 .astro/
